@@ -1,98 +1,110 @@
-'use client'
-
-import Image from 'next/image'
-import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import Link from "next/link";
 
 export default function HomePage() {
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
-
-  const features = [
-    {
-      title: 'Faster Flow',
-      desc: 'Leave the table without waiting on the check.',
-      icon: '/icons/fast.png',
-      alt: 'Lightning bolt icon',
-    },
-    {
-      title: 'No More Math',
-      desc: 'Everyone pays for what they ordered — no headaches.',
-      icon: '/icons/math.png',
-      alt: 'Division symbol icon',
-    },
-    {
-      title: 'Real-Time Split',
-      desc: 'See who’s paid and who’s pending at a glance.',
-      icon: '/icons/realtime.png',
-      alt: 'Stopwatch icon',
-    },
-    {
-      title: 'POS Friendly',
-      desc: 'Works with restaurant systems and QR codes.',
-      icon: '/icons/pos.png',
-      alt: 'QR code scanner icon',
-    },
-  ]
-
   return (
-    <main className="min-h-screen bg-[#0B0F1C] text-white flex flex-col items-center px-4 pb-24 pt-12">
-      {/* Logo Header */}
-      <header className="w-full flex justify-center mb-8">
-        {mounted && (
-          <Image
-            src="/oriva_logo_official.png"
-            alt="Oriva Logo"
-            className="h-20 md:h-24 w-auto"
-            width={300}
-            height={100}
-            priority
-          />
-        )}
-      </header>
+    <main className="min-h-screen bg-[#070A12] text-white">
+      {/* Subtle tech glow */}
+      <div className="pointer-events-none fixed inset-0 opacity-60">
+        <div className="absolute -top-40 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(88,140,255,0.22),transparent_60%)] blur-2xl" />
+        <div className="absolute bottom-[-220px] right-[-160px] h-[520px] w-[520px] rounded-full bg-[radial-gradient(circle_at_center,rgba(255,210,143,0.14),transparent_60%)] blur-2xl" />
+      </div>
 
-      {/* Hero Text */}
-      <section className="text-center mb-14">
-        <h1 className="text-4xl md:text-5xl font-serif font-bold bg-gradient-to-r from-white via-[#FFCC88] to-white bg-clip-text text-transparent animate-shimmer-strong">
-          Scan & Split Your Bill
-        </h1>
-        <p className="mt-4 text-lg text-[#E0E0E0] max-w-2xl mx-auto">
-          Oriva makes group dining payments smooth, fast, and shared.
-        </p>
-      </section>
-
-      {/* Features Grid */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl w-full">
-        {features.map((card, i) => (
-          <div
-            key={i}
-            className="rounded-2xl p-6 backdrop-blur-md border border-[#FFD28F]/20 bg-gradient-to-br from-white/5 to-[#1c1f2b] shadow-[0_0_40px_8px_rgba(255,210,143,0.05)] hover:shadow-[0_0_50px_10px_rgba(255,210,143,0.2)] transition-all hover:-translate-y-1 flex items-center gap-5"
-          >
-            <div className="flex-shrink-0">
-              <Image
-                src={card.icon}
-                alt={card.alt}
-                width={48}
-                height={48}
-                className="rounded-xl bg-[#151925] p-2 shadow-[0_0_20px_rgba(255,210,143,0.2)]"
-              />
+      <div className="relative mx-auto flex max-w-5xl flex-col gap-10 px-6 py-14">
+        {/* Header */}
+        <header className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-2xl bg-[#0D1326] ring-1 ring-white/10 shadow-[0_0_30px_6px_rgba(255,210,143,0.12)] flex items-center justify-center">
+              <span className="text-[#FFD28F] font-semibold">M</span>
             </div>
-            <div>
-              <h3 className="text-[#FFD28F] font-semibold text-lg mb-1">{card.title}</h3>
-              <p className="text-white/90 text-sm">{card.desc}</p>
+            <div className="leading-tight">
+              <div className="text-sm text-white/70">Oriva</div>
+              <div className="text-base font-semibold tracking-wide">
+                Movement Marketplace
+              </div>
             </div>
           </div>
-        ))}
-      </section>
 
-      {/* CTA Button */}
-      <div className="mt-16">
-        <Link href="/table/join">
-          <button className="bg-[#FFCC88] hover:bg-[#FEC56B] text-black font-semibold text-lg px-6 py-3 rounded-full shadow-inner transform hover:-translate-y-1 transition-all duration-200 ring-1 ring-[#FFD28F]/30 shadow-[0_0_40px_8px_rgba(255,210,143,0.2)]">
-            Enter the Flow
-          </button>
-        </Link>
+          <Link
+            href="/authorization"
+            className="rounded-full bg-[#0D1326] px-4 py-2 text-sm ring-1 ring-white/10 hover:ring-[#FFD28F]/40 hover:shadow-[0_0_24px_4px_rgba(255,210,143,0.18)] transition"
+          >
+            Log In
+          </Link>
+        </header>
+
+        {/* Hero */}
+        <section className="rounded-3xl bg-white/5 ring-1 ring-white/10 backdrop-blur-xl shadow-[0_0_40px_10px_rgba(0,0,0,0.35)] p-8 md:p-10">
+          <div className="flex flex-col gap-4">
+            <p className="text-sm text-white/70">
+              Money is committed first. Movement authorizes its release.
+            </p>
+
+            <h1 className="text-4xl md:text-5xl font-semibold tracking-tight">
+              Move.{" "}
+              <span className="text-[#FFD28F]">Unlock</span>.{" "}
+              <span className="text-white/90">Impact.</span>
+            </h1>
+
+            <p className="max-w-2xl text-base md:text-lg text-white/70">
+              Claim a challenge, complete the distance, and instantly move
+              committed dollars to the nonprofit behind it.
+            </p>
+
+            <div className="mt-2 flex flex-col sm:flex-row gap-3">
+              <Link
+                href="/challenges"
+                className="group inline-flex items-center justify-center rounded-2xl bg-[#FFD28F] px-5 py-3 text-sm font-semibold text-[#10131E] shadow-[0_10px_30px_rgba(0,0,0,0.35)] hover:-translate-y-0.5 transition"
+              >
+                Enter the Challenge Board
+                <span className="ml-2 opacity-70 group-hover:opacity-100 transition">
+                  →
+                </span>
+              </Link>
+
+              <Link
+                href="/legal"
+                className="inline-flex items-center justify-center rounded-2xl bg-[#0D1326] px-5 py-3 text-sm font-medium text-white/90 ring-1 ring-white/10 hover:ring-white/20 transition"
+              >
+                How it works
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Quick tiles */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[
+            {
+              title: "No fundraising",
+              body: "Runners don’t ask or pay. They unlock committed capital.",
+            },
+            {
+              title: "Verified movement",
+              body: "Strava/Garmin later. MVP supports manual verification.",
+            },
+            {
+              title: "Matching optional",
+              body: "Performance matching partners can amplify impact.",
+            },
+          ].map((t) => (
+            <div
+              key={t.title}
+              className="rounded-3xl bg-white/5 ring-1 ring-white/10 backdrop-blur-xl p-6 shadow-[0_0_26px_6px_rgba(0,0,0,0.25)]"
+            >
+              <div className="text-[#FFD28F] text-sm font-semibold">
+                {t.title}
+              </div>
+              <div className="mt-2 text-sm text-white/70">{t.body}</div>
+            </div>
+          ))}
+        </section>
+
+        {/* Footer */}
+        <footer className="flex items-center justify-between text-xs text-white/50">
+          <span>OMM MVP</span>
+          <span>Tech-forward, clean foundation</span>
+        </footer>
       </div>
     </main>
-  )
+  );
 }

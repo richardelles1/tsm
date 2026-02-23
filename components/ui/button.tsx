@@ -1,22 +1,20 @@
-'use client'
+import * as React from "react";
 
-import * as React from 'react'
+type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: "gold" | "ghost";
+};
 
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  className?: string
+export function Button({ variant = "gold", className = "", ...props }: Props) {
+  const base =
+    "inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-200 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed";
+
+  const gold =
+    "bg-[rgba(240,197,122,0.92)] text-[#081022] shadow-[0_10px_30px_rgba(240,197,122,0.14)] hover:bg-[rgba(240,197,122,1)] hover:-translate-y-[1px]";
+
+  const ghost =
+    "bg-transparent text-[rgba(245,241,232,0.9)] border border-[rgba(154,196,255,0.18)] hover:border-[rgba(240,197,122,0.28)] hover:bg-[rgba(11,22,48,0.25)]";
+
+  const styles = variant === "gold" ? gold : ghost;
+
+  return <button className={`${base} ${styles} ${className}`} {...props} />;
 }
-
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className = '', ...props }, ref) => {
-    return (
-      <button
-        ref={ref}
-        {...props}
-        className={`inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-[#FFCC88] hover:bg-[#FEC56B] text-black px-6 py-3 shadow-inner ring-1 ring-[#FFD28F]/30 shadow-[0_0_40px_8px_rgba(255,210,143,0.2)] hover:-translate-y-1 ${className}`}
-      />
-    )
-  }
-)
-
-Button.displayName = 'Button'
-export { Button }

@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "es6",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -17,13 +13,13 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
-    "baseUrl": ".", // ✅ Enables absolute path mapping
+    "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./*"
-      ] // ✅ Tells TypeScript how to resolve @/
+      "@/*": ["./*"]
     },
     "incremental": true,
+    "typeRoots": ["./types", "./node_modules/@types"],
+    "types": ["node"],
     "plugins": [
       {
         "name": "next"
@@ -36,7 +32,5 @@
     "next-env.d.ts",
     ".next/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }

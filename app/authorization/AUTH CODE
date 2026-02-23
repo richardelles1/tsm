@@ -1,0 +1,26 @@
+  // --- AUTH / ADMIN GATE (page-level) ---
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return (
+      <div className="p-8 space-y-4 text-neutral-100">
+        <h1 className="text-2xl font-semibold">PMP Entry</h1>
+        <p className="text-sm text-neutral-300/80">You must be logged in.</p>
+      </div>
+    );
+  }
+
+  if (!isAdminEmail(user.email)) {
+    return (
+      <div className="p-8 space-y-4 text-neutral-100">
+        <h1 className="text-2xl font-semibold">PMP Entry</h1>
+        <p className="text-sm text-neutral-300/80">
+          Forbidden. Add your email to{" "}
+          <span className="font-mono bg-white/10 px-2 py-0.5 rounded">ADMIN_EMAILS</span> in{" "}
+          <span className="font-mono bg-white/10 px-2 py-0.5 rounded">.env.local</span>, restart dev.
+        </p>
+      </div>
+    );
+  }
