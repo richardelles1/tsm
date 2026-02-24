@@ -1,7 +1,3 @@
-// OLD
-// (file did not exist / or replace entire file)
-
-// NEW
 "use client";
 
 import { useEffect, useState } from "react";
@@ -22,6 +18,9 @@ type ClaimWithChallenge = {
 
   amount_cents_snapshot: number | null;
   distance_miles_snapshot: number | null;
+
+ // 👇 ADD THIS LINE
+  verification_photo_url: string | null;
 
   challenges?: {
     id: string;
@@ -74,8 +73,10 @@ export default function VerifyPage() {
   const [athleteName, setAthleteName] = useState<string>("");
   const [claim, setClaim] = useState<ClaimWithChallenge | null>(null);
 
-  const [error, setError] = useState<string | null>(null);
-  const [verifying, setVerifying] = useState(false);
+const [error, setError] = useState<string | null>(null);
+
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!supabase) return;
@@ -193,57 +194,67 @@ export default function VerifyPage() {
   }, [router, supabase, claimId]);
 
   // NEW
-async function handleVerifyComplete() {
-  if (!supabase) return;
+async function handleScreenshotUpload(file: File) {
+  if (!supabase || !claim) return;
 
-  const id = claim?.id;
-  if (!id) {
-    setError("Claim not loaded yet. Try again in a second.");
-    return;
-  }
-
-  if (verifying) return;
-
-  setVerifying(true);
-  setError(null);
+  setUploading(true);
+  setUploadError(null);
 
   try {
-    // ✅ Grab session token from the browser client
-    const {
-      data: { session },
-      error: sessionErr,
-    } = await supabase.auth.getSession();
+    const fileExt = file.name.split(".").pop();
+    const filePath = `${claim.id}.${fileExt}`;
 
-    if (sessionErr || !session?.access_token) {
-      throw new Error("Not authenticated (no session token). Try logging in again.");
-    }
+    // 1️⃣ Upload
+    const { error: uploadErr } = await supabase.storage
+      .from("claim-verifications")
+      .upload(filePath, file, { upsert: true });
 
-    const { data: sessionData } = await supabase.auth.getSession();
-const accessToken = sessionData?.session?.access_token;
+    if (uploadErr) throw uploadErr;
 
-const res = await fetch("/api/verify/complete", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-  },
-  cache: "no-store",
-  body: JSON.stringify({ claimId: id }),
-});
+    // 2️⃣ Get public URL
+    const { data } = supabase.storage
+      .from("claim-verifications")
+      .getPublicUrl(filePath);
 
-    let json: any = null;
-    try {
-      json = await res.json();
-    } catch {}
+    const publicUrl = data.publicUrl;
 
-    if (!res.ok) {
-      throw new Error(json?.error || `Verify failed (${res.status})`);
-    }
+    // 3️⃣ Update claim
+    const { data: updatedClaim, error: updateErr } = await supabase
+      .from("claims")
+      .update({
+        verification_photo_url: publicUrl,
+        status: "submitted",
+        submitted_at: new Date().toISOString(),
+      })
+      .eq("id", claim.id)
+      .select()
+      .single();
 
-    router.replace(`/challengecomplete/${id}`);
+    if (updateErr) throw updateErr;
+
+    // 4️⃣ Update local state immediately
+    setClaim(updatedClaim as ClaimWithChallenge);
   } catch (e: any) {
-    setError(e?.message || "Failed to verify claim.");
-    setVerifying(false);
+    setUploadError(e?.message || "Upload failed.");
+  } finally {
+    setUploading(false);
+  }
+}
+
+async function handleReleaseClaim() {
+  if (!supabase || !claim) return;
+
+  try {
+    const { error: updateErr } = await supabase
+      .from("claims")
+      .update({ status: "cancelled" })
+      .eq("id", claim.id);
+
+    if (updateErr) throw updateErr;
+
+    router.replace("/athlete");
+  } catch (e: any) {
+    setError(e?.message || "Failed to release claim.");
   }
 }
 
@@ -350,29 +361,79 @@ const res = await fetch("/api/verify/complete", {
                 </div>
               </div>
 
-              {/* Single-button MVP verification */}
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="text-xs text-white/55">
-                  MVP mode: one-click completion now. Later: Strava/Garmin OAuth validates the activity.
-                </div>
+              {/* Screenshot-first verification */}
+<div className="mt-6 flex flex-col gap-4">
+  {claim.status === "claimed" && (
+    <>
+      <div className="text-xs text-white/60">
+        Upload a screenshot of your completed activity to submit for review.
+      </div>
 
-                <button
-                  onClick={handleVerifyComplete}
-                  disabled={verifying || claim.status === "approved"}
-                  className={[
-                    "inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-medium transition",
-                    "bg-[#FFD28F] text-[#0B0F1C] shadow-[0_12px_40px_rgba(255,210,143,0.20)]",
-                    "hover:-translate-y-0.5 hover:bg-[#FEC56B]",
-                    "disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0",
-                  ].join(" ")}
-                >
-                  {claim.status === "approved"
-                    ? "Completed ✓"
-                    : verifying
-                      ? "Verifying…"
-                      : "Verify & Complete →"}
-                </button>
-              </div>
+      <label className="inline-flex items-center justify-center rounded-full bg-[#FFD28F] px-5 py-3 text-sm font-medium text-[#0B0F1C] hover:bg-[#FEC56B] cursor-pointer transition">
+        {uploading ? "Uploading…" : "Upload Screenshot"}
+        <input
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) handleScreenshotUpload(file);
+          }}
+        />
+      </label>
+
+      <button
+        onClick={handleReleaseClaim}
+        className="text-sm text-white/50 underline hover:text-white/70 transition"
+      >
+        Release this claim
+      </button>
+
+      {uploadError && (
+        <div className="text-sm text-red-400">{uploadError}</div>
+      )}
+    </>
+  )}
+
+  {claim.status === "submitted" && (
+  <div className="flex flex-col gap-3">
+    <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-4 text-sm text-white/70">
+      Screenshot submitted. Awaiting review.
+    </div>
+
+    {claim.verification_photo_url && (
+      <img
+        src={claim.verification_photo_url}
+        alt="Submitted verification"
+        className="rounded-xl ring-1 ring-white/10 max-h-64 object-contain"
+      />
+    )}
+
+    <button
+      onClick={handleReleaseClaim}
+      className="text-sm text-white/50 underline hover:text-white/70 transition"
+    >
+      Withdraw submission
+    </button>
+  </div>
+)}
+
+  {claim.status === "approved" && (
+    <div className="rounded-2xl bg-green-500/10 ring-1 ring-green-500/30 p-4 text-sm text-green-200">
+      Verified ✓ Challenge completed.
+    </div>
+  )}
+
+  {claim.status === "rejected" && (
+    <div className="rounded-2xl bg-red-500/10 ring-1 ring-red-500/30 p-4 text-sm text-red-200">
+      Submission rejected. Please upload again.
+    </div>
+  )}
+
+  
+</div>
+
+
             </div>
 
             <div className="mt-6 flex justify-end">

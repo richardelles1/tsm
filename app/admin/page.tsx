@@ -195,6 +195,7 @@ export default async function AdminHomePage() {
             <AdminLink href="/admin/payables" title="Payables" desc="Who we owe + drilldown rows." />
             <AdminLink href="/admin/nonprofits" title="Nonprofits" desc="Recipients + totals + payout status." />
             <AdminLink href="/admin/alerts" title="Alerts" desc="Low pools, aging payables, exhausted match." />
+            <AdminLink href="/admin/verifications" title="Verifications" desc="Pending verification requests." />
 
             <AdminLink href="/admin/settings" title="Settings" desc="Admin-only rules + thresholds." />
           </div>

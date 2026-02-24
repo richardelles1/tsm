@@ -313,6 +313,33 @@ await loadAthlete();   } catch (err) {
           </div>
         </div>
 
+        {/* Active Claim */}
+        {activeClaim && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">Active Challenge</h2>
+
+            <Link
+              href={`/verify/${activeClaim.id}`}
+              className="flex items-center justify-between rounded-[28px] bg-white/5 ring-1 ring-white/10 backdrop-blur-xl p-6 hover:ring-white/20 transition shadow-[0_0_34px_10px_rgba(0,0,0,0.30)]"
+            >
+              <div>
+                <div className="text-xs text-white/55">
+                  Status: Claimed
+                </div>
+
+                <div className="mt-1 text-base font-medium">
+                  {miles(activeClaim.distance_miles_snapshot)} •{" "}
+                  {money(activeClaim.amount_cents_snapshot)} unlocked
+                </div>
+              </div>
+
+              <div className="text-[#FFD28F] text-sm font-medium">
+                Verify →
+              </div>
+            </Link>
+          </div>
+        )}
+
         {/* History */}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">History</h2>
