@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import AdminVerificationActions from "../../../components/AdminVerificationActions";
+console.log("CLIENT ACTION BUTTON LOADED");
 
 type AdminVerificationRow = {
   id: string;
