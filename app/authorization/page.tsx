@@ -146,8 +146,8 @@ export default function AuthorizationPage() {
             email,
             password,
             options: {
-              emailRedirectTo: `${window.location.origin}/authorization`,
-            },
+  emailRedirectTo: `${window.location.origin}/onboarding`,
+},
           }),
           15000,
           "Signup request"

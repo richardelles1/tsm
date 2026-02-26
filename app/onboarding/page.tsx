@@ -31,16 +31,27 @@ export default function OnboardingPage() {
   }, [supabase]);
 
   async function enforceAuth() {
-    if (!supabase) return;
+  if (!supabase) return;
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+  const { data } = await supabase.auth.getSession();
+  const session = data.session;
 
-    if (!session?.user) {
-      router.replace("/authorization");
-    }
+  if (!session?.user) {
+    router.replace("/authorization");
+    return;
   }
+
+  // Prevent re-entering onboarding if already completed
+  const { data: athlete } = await supabase
+    .from("athletes")
+    .select("onboarding_completed")
+    .eq("id", session.user.id)
+    .maybeSingle();
+
+  if (athlete?.onboarding_completed) {
+    router.replace("/athlete");
+  }
+}
 
   async function handleSubmit() {
     if (!supabase) return;
@@ -78,6 +89,7 @@ export default function OnboardingPage() {
       }
     }
 
+    
     // ✅ Guarantee: authenticated user becomes an athlete (create or update)
     const { error: upsertError } = await supabase
       .from("athletes")
