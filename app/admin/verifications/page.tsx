@@ -112,16 +112,22 @@ const path = value.includes(bucket)
   )
 })()}
             <div className="flex gap-4">
-              <form action={`/api/admin/verifications/update`} method="POST">
-                <input type="hidden" name="id" value={row.id} />
+<form
+  action="/api/admin/verifications/update"
+  method="post"
+  data-nextjs-router="false"
+>                <input type="hidden" name="id" value={row.id} />
                 <input type="hidden" name="action" value="approve" />
                 <button className="px-4 py-2 rounded-lg bg-green-500/20 ring-1 ring-green-500/40 text-green-200">
                   Approve
                 </button>
               </form>
 
-              <form action={`/api/admin/verifications/update`} method="POST">
-                <input type="hidden" name="id" value={row.id} />
+<form
+  action="/api/admin/verifications/update"
+  method="post"
+  data-nextjs-router="false"
+>                <input type="hidden" name="id" value={row.id} />
                 <input type="hidden" name="action" value="reject" />
                 <button className="px-4 py-2 rounded-lg bg-red-500/20 ring-1 ring-red-500/40 text-red-200">
                   Reject
