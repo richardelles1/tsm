@@ -90,10 +90,18 @@ export default async function AdminVerificationsPage() {
             </div>
 
           {row.verification_photo_url && (() => {
+  const value = row.verification_photo_url
+
+  const bucket = "claim-verifications"
+
+const path = value.includes(bucket)
+  ? value.substring(value.indexOf(bucket) + bucket.length + 1)
+  : value
+
   const { data } = supabase
     .storage
-    .from('claim-verifications')
-    .getPublicUrl(row.verification_photo_url)
+    .from("claim-verifications")
+    .getPublicUrl(path)
 
   return (
     <img
