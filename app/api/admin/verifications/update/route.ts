@@ -42,7 +42,7 @@ const action = formData.get("action") as string;
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-return NextResponse.redirect(new URL("/admin/verifications", req.url));  } catch (err) {
+return NextResponse.json({ success: true });  } catch (err) {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
