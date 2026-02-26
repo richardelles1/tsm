@@ -89,14 +89,20 @@ export default async function AdminVerificationsPage() {
               </div>
             </div>
 
-            {row.verification_photo_url && (
-              <img
-                src={row.verification_photo_url}
-                alt="verification"
-                className="rounded-xl ring-1 ring-white/10 max-h-96 object-contain"
-              />
-            )}
+          {row.verification_photo_url && (() => {
+  const { data } = supabase
+    .storage
+    .from('claim-verifications')
+    .getPublicUrl(row.verification_photo_url)
 
+  return (
+    <img
+      src={data.publicUrl}
+      alt="verification"
+      className="rounded-xl ring-1 ring-white/10 max-h-96 object-contain"
+    />
+  )
+})()}
             <div className="flex gap-4">
               <form action={`/api/admin/verifications/update`} method="POST">
                 <input type="hidden" name="id" value={row.id} />
