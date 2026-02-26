@@ -593,7 +593,7 @@ NON-NEGOTIABLES (RECAP)
 Supabase Auth is canonical.
 Miles for distance.
 Integer cents for money.
-One active claim per athlete.
+One active claim per athlete but future state is one submitted claim, one active claim.
 One active claim per challenge.
 One claim per athlete per day.
 Claim snapshots are immutable.
