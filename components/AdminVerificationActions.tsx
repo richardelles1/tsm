@@ -17,6 +17,7 @@ export default function AdminVerificationActions({ id }: { id: string }) {
   return (
     <div className="flex gap-4">
       <button
+        type="button"
         onClick={() => handle("approve")}
         className="px-4 py-2 rounded-lg bg-green-500/20 ring-1 ring-green-500/40 text-green-200"
       >
@@ -24,6 +25,7 @@ export default function AdminVerificationActions({ id }: { id: string }) {
       </button>
 
       <button
+        type="button"
         onClick={() => handle("reject")}
         className="px-4 py-2 rounded-lg bg-red-500/20 ring-1 ring-red-500/40 text-red-200"
       >
