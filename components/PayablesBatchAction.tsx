@@ -40,7 +40,7 @@ export default function PayablesBatchAction({ payableIds, nonprofitName, totalCe
   return (
     <>
       <button
-        onClick={() => setOpen(true)}
+        onClick={(e) => { e.stopPropagation(); setOpen(true); }}
         className="rounded-full bg-[#FF9B6A]/15 px-4 py-2 text-sm text-[#FF9B6A] ring-1 ring-[#FF9B6A]/30 hover:bg-[#FF9B6A]/25 hover:ring-[#FF9B6A]/50 transition"
       >
         Mark {payableIds.length} as Paid →

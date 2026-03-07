@@ -1,0 +1,51 @@
+23:10:59.212 Running build in Washington, D.C., USA (East) – iad1
+23:10:59.213 Build machine configuration: 2 cores, 8 GB
+23:10:59.224 Cloning github.com/richardelles1/tsm (Branch: main, Commit: b6e0a8d)
+23:10:59.225 Skipping build cache, deployment was triggered without cache.
+23:10:59.771 Cloning completed: 546.000ms
+23:11:02.727 Running "vercel build"
+23:11:03.470 Vercel CLI 50.28.0
+23:11:03.776 Installing dependencies...
+23:11:07.039 npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+23:11:07.604 npm warn deprecated lodash.template@4.5.0: This package is deprecated. Use https://socket.dev/npm/package/eta instead.
+23:11:07.997 npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+23:11:09.293 npm warn deprecated @types/long@5.0.0: This is a stub types definition. long provides its own type definitions, so you do not need this installed.
+23:11:09.699 npm warn deprecated @humanwhocodes/config-array@0.11.14: Use @eslint/config-array instead
+23:11:09.954 npm warn deprecated @supabase/auth-helpers-shared@0.7.0: This package is now deprecated - please use the @supabase/ssr package instead.
+23:11:09.984 npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+23:11:10.145 npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+23:11:10.257 npm warn deprecated gm@1.25.1: The gm module has been sunset. Please migrate to an alternative. https://github.com/aheckmann/gm?tab=readme-ov-file#2025-02-24-this-project-is-not-maintained
+23:11:10.300 npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+23:11:10.303 npm warn deprecated rimraf@2.7.1: Rimraf versions prior to v4 are no longer supported
+23:11:10.505 npm warn deprecated @supabase/auth-helpers-nextjs@0.10.0: This package is now deprecated - please use the @supabase/ssr package instead.
+23:11:10.581 npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+23:11:14.752 npm warn deprecated eslint@8.56.0: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+23:11:23.407 
+23:11:23.407 added 761 packages in 19s
+23:11:23.408 
+23:11:23.408 225 packages are looking for funding
+23:11:23.408   run `npm fund` for details
+23:11:23.649 Detected Next.js version: 15.5.12
+23:11:23.655 Running "npm run build"
+23:11:23.759 
+23:11:23.760 > omm@0.1.0 build
+23:11:23.760 > next build
+23:11:23.761 
+23:11:24.598 Attention: Next.js now collects completely anonymous telemetry regarding usage.
+23:11:24.599 This information is used to shape Next.js' roadmap and prioritize features.
+23:11:24.599 You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+23:11:24.600 https://nextjs.org/telemetry
+23:11:24.600 
+23:11:24.717    ▲ Next.js 15.5.12
+23:11:24.718 
+23:11:24.865    Creating an optimized production build ...
+23:11:38.206 Browserslist: browsers data (caniuse-lite) is 10 months old. Please run:
+23:11:38.207   npx update-browserslist-db@latest
+23:11:38.207   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+23:11:41.754  ✓ Compiled successfully in 16.4s
+23:11:41.757    Skipping linting
+23:11:41.758    Checking validity of types ...
+23:11:48.828    Collecting page data ...
+23:11:49.294  ⚠ Using edge runtime on a page currently disables static generation for that page
+23:11:51.443    Generating static pages (0/30) ...
+23:11:52.334    Generating static pages (7/30) 

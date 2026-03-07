@@ -204,13 +204,11 @@ export default async function AdminPayablesPage() {
                     <span className="inline-flex items-center rounded-full bg-[#FFD28F]/10 px-3 py-1 text-sm text-[#FFD28F] ring-1 ring-[#FFD28F]/20 font-medium">
                       {money(g.totalOwedCents)}
                     </span>
-                    <div onClick={(e) => e.preventDefault()}>
-                      <PayablesBatchAction
-                        payableIds={g.items.map((p) => p.id)}
-                        nonprofitName={g.name}
-                        totalCents={g.totalOwedCents}
-                      />
-                    </div>
+                    <PayablesBatchAction
+                      payableIds={g.items.map((p) => p.id)}
+                      nonprofitName={g.name}
+                      totalCents={g.totalOwedCents}
+                    />
                   </div>
                 </summary>
 
