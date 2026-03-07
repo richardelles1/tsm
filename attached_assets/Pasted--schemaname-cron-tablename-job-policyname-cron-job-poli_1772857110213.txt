@@ -1,0 +1,532 @@
+[
+  {
+    "schemaname": "cron",
+    "tablename": "job",
+    "policyname": "cron_job_policy",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "ALL",
+    "using_expression": "(username = CURRENT_USER)",
+    "with_check_expression": null
+  },
+  {
+    "schemaname": "cron",
+    "tablename": "job_run_details",
+    "policyname": "cron_job_run_details_policy",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "ALL",
+    "using_expression": "(username = CURRENT_USER)",
+    "with_check_expression": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "Creators",
+    "policyname": "Allow anon insert creators",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "INSERT",
+    "using_expression": null,
+    "with_check_expression": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "Creators",
+    "policyname": "Allow anon read creators",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "SELECT",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "Creators",
+    "policyname": "Allow public PIN lookup",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "SELECT",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "Creators",
+    "policyname": "Service role full access",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "ALL",
+    "using_expression": "(auth.role() = 'service_role'::text)",
+    "with_check_expression": "(auth.role() = 'service_role'::text)"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "DemoPaymentsRecorded",
+    "policyname": "Allow public insert into demo",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "INSERT",
+    "using_expression": null,
+    "with_check_expression": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "DemoPaymentsRecorded",
+    "policyname": "Allow public read of demo",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "SELECT",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "EvenSplits",
+    "policyname": "Allow Public Insert",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "INSERT",
+    "using_expression": null,
+    "with_check_expression": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "EvenSplits",
+    "policyname": "Allow Public Insert on EvenSplits",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "INSERT",
+    "using_expression": null,
+    "with_check_expression": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "EvenSplits",
+    "policyname": "Allow Public Inserts",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "INSERT",
+    "using_expression": null,
+    "with_check_expression": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "EvenSplits",
+    "policyname": "Allow Public Read",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "SELECT",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "EvenSplitsClaims",
+    "policyname": "Allow insert for all",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "INSERT",
+    "using_expression": null,
+    "with_check_expression": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "EvenSplitsClaims",
+    "policyname": "Allow insert for service role",
+    "permissive": "PERMISSIVE",
+    "roles": "{service_role}",
+    "command": "INSERT",
+    "using_expression": null,
+    "with_check_expression": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "EvenSplitsClaims",
+    "policyname": "Allow insert to all",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "INSERT",
+    "using_expression": null,
+    "with_check_expression": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "Items",
+    "policyname": "Allow All Read",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "SELECT",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "Items",
+    "policyname": "Allow Insert to All",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "INSERT",
+    "using_expression": null,
+    "with_check_expression": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "Items",
+    "policyname": "Allow Updates",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "UPDATE",
+    "using_expression": "true",
+    "with_check_expression": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "Items",
+    "policyname": "Allow read access to all",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "SELECT",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "Payments",
+    "policyname": "Allow All Inserts",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "INSERT",
+    "using_expression": null,
+    "with_check_expression": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "Payments",
+    "policyname": "Allow Read for All",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "SELECT",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "PaymentsRecorded",
+    "policyname": "Allow insert from service role",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "INSERT",
+    "using_expression": null,
+    "with_check_expression": "(auth.role() = 'service_role'::text)"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "PaymentsRecorded",
+    "policyname": "Allow public inserts",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "INSERT",
+    "using_expression": null,
+    "with_check_expression": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "PaymentsRecorded",
+    "policyname": "Allow read access for all users",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "SELECT",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "PaymentsRecorded",
+    "policyname": "Allow read for all",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "SELECT",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "PaymentsRecorded",
+    "policyname": "Users can insert their own payment record",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "INSERT",
+    "using_expression": null,
+    "with_check_expression": "(auth.uid() IS NOT NULL)"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "RecurringGiftPledges",
+    "policyname": "Allow insert for all authenticated users",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "command": "INSERT",
+    "using_expression": null,
+    "with_check_expression": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "RecurringGiftPledges",
+    "policyname": "Allow select for all authenticated users",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "command": "SELECT",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "RecurringGiftPledges",
+    "policyname": "Insert own pledges",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "INSERT",
+    "using_expression": null,
+    "with_check_expression": "(created_by = auth.uid())"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "RecurringGiftPledges",
+    "policyname": "Select own pledges",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "SELECT",
+    "using_expression": "(created_by = auth.uid())",
+    "with_check_expression": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "RecurringGiftPledges",
+    "policyname": "Update own pledges",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "UPDATE",
+    "using_expression": "(created_by = auth.uid())",
+    "with_check_expression": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "RecurringGiftPledges",
+    "policyname": "allow_insert_recurring_pledges",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "INSERT",
+    "using_expression": null,
+    "with_check_expression": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "RecurringGiftPledges",
+    "policyname": "allow_select_recurring_pledges",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "SELECT",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "RecurringGiftPledges",
+    "policyname": "allow_update_recurring_pledges",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "UPDATE",
+    "using_expression": "true",
+    "with_check_expression": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "RecurringGifts",
+    "policyname": "Anyone can insert RecurringGifts",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "INSERT",
+    "using_expression": null,
+    "with_check_expression": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "RecurringGifts",
+    "policyname": "Stripe service can update RecurringGifts",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "UPDATE",
+    "using_expression": "(auth.role() = 'service_role'::text)",
+    "with_check_expression": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "RecurringGifts",
+    "policyname": "Users can read their own RecurringGifts",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "SELECT",
+    "using_expression": "((auth.uid())::text = stripe_customer_id)",
+    "with_check_expression": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "Tables",
+    "policyname": "Allow FK Checks from EvenSplits",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "SELECT",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "Tables",
+    "policyname": "Allow FK SELECT for EvenSplits",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "SELECT",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "Tables",
+    "policyname": "Allow Public Update",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "UPDATE",
+    "using_expression": "true",
+    "with_check_expression": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "Tables",
+    "policyname": "Allow Public Update on Tables",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "UPDATE",
+    "using_expression": "true",
+    "with_check_expression": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "Tables",
+    "policyname": "Allow Read Access to Anyone",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "SELECT",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "Tables",
+    "policyname": "Allow Table Read for FK",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "SELECT",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "Tables",
+    "policyname": "Allow Update Access",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "UPDATE",
+    "using_expression": "true",
+    "with_check_expression": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "Tables",
+    "policyname": "Allow public inserts",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "INSERT",
+    "using_expression": null,
+    "with_check_expression": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "Tables",
+    "policyname": "Allow service role to update Tables",
+    "permissive": "PERMISSIVE",
+    "roles": "{service_role}",
+    "command": "UPDATE",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "Tables",
+    "policyname": "Allow table_closed update by service role",
+    "permissive": "PERMISSIVE",
+    "roles": "{service_role}",
+    "command": "UPDATE",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "Tables",
+    "policyname": "Allow update for table_closed",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "UPDATE",
+    "using_expression": "true",
+    "with_check_expression": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "Tables",
+    "policyname": "Allow updates from triggers",
+    "permissive": "PERMISSIVE",
+    "roles": "{postgres}",
+    "command": "UPDATE",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "Tables",
+    "policyname": "Allow updates to table_closed",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "command": "UPDATE",
+    "using_expression": "true",
+    "with_check_expression": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "Tables",
+    "policyname": "allow_update_archived_authenticated",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "command": "UPDATE",
+    "using_expression": "true",
+    "with_check_expression": "true"
+  },
+  {
+    "schemaname": "storage",
+    "tablename": "objects",
+    "policyname": "Allow anon+authed uploads to QRs",
+    "permissive": "PERMISSIVE",
+    "roles": "{anon,authenticated}",
+    "command": "INSERT",
+    "using_expression": null,
+    "with_check_expression": "(bucket_id = 'QRs'::text)"
+  },
+  {
+    "schemaname": "storage",
+    "tablename": "objects",
+    "policyname": "Allow public read of QRs",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "command": "SELECT",
+    "using_expression": "(bucket_id = 'QRs'::text)",
+    "with_check_expression": null
+  }
+]

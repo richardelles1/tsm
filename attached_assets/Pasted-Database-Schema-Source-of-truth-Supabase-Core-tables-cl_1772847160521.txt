@@ -1,0 +1,212 @@
+Database Schema
+
+Source of truth: Supabase
+
+Core tables:
+
+claims
+
+id (uuid)
+
+athlete_id (uuid)
+
+challenge_id (uuid)
+
+amount_cents_snapshot (int)
+
+distance_miles_snapshot (numeric)
+
+status (enum: submitted, approved, released, rejected)
+
+submitted_at
+
+approved_at
+
+rejected_at
+
+verified_at
+
+verification_photo_url
+
+challenges
+
+id
+
+title
+
+nonprofit_id
+
+funding_pool_id
+
+corporate_partner_pmp_id
+
+match_ratio
+
+releases
+
+id
+
+claim_id (unique)
+
+challenge_id
+
+nonprofit_id
+
+funding_pool_id
+
+corporate_partner_pmp_id
+
+amount_cents
+
+matched_amount_cents
+
+currency
+
+created_at
+
+funding_pools
+
+id
+
+source_type (corporate_partner / nonprofit / donor)
+
+pool_type (base / matching)
+
+corporate_partner_pmp_id
+
+remaining_amount_cents
+
+athletes
+
+id
+
+username
+
+display_name
+
+Critical logic lives in Supabase RPC:
+
+create_release_and_debit_pools(p_claim_id uuid)
+
+2. System Status
+Fully Working
+
+✔ Claim submission
+✔ Verification photo upload
+✔ Admin verification queue
+✔ Admin approval flow
+✔ Release engine (RPC)
+✔ Pool debit logic
+✔ Releases ledger page
+✔ Idempotent release protection
+✔ Claim lifecycle updates
+
+In Progress
+
+Admin tools:
+
+Release screen UX
+
+Batch release option
+
+Payables engine
+
+Platform:
+
+Stripe payouts to nonprofits
+
+Corporate partner funding pools
+
+Nonprofit portal
+
+3. User Roles
+
+Athlete
+
+submits claims
+
+uploads verification
+
+views challenges
+
+Admin
+
+verifies claims
+
+approves claims
+
+releases funds
+
+Nonprofit (future)
+
+views funds unlocked
+
+receives payouts
+
+Roles are currently handled in app logic, not Supabase RLS.
+
+4. Design Language
+
+Framework:
+
+Next.js (App Router)
+
+Tailwind
+
+shadcn components
+
+Design tone:
+
+dark background
+
+soft glass panels
+
+subtle gold highlight color #FFD28F
+
+Admin UI style:
+
+simple operational dashboard
+
+clarity > decoration
+
+5. Warp Speed Priority Order
+
+1️⃣ Stabilize Admin Operations
+
+verification queue
+
+release management
+
+batch release
+
+2️⃣ Payables Engine
+
+releases → payout batches
+
+payout ledger
+
+payout status
+
+3️⃣ Stripe Integration
+
+nonprofit payout rails
+
+platform fee logic
+
+4️⃣ Nonprofit Portal
+
+show unlocked funds
+
+payout history
+
+5️⃣ Corporate Partner Layer
+
+matching pools
+
+partner dashboards
+
+One Final Instruction to Replit
+
+Add this line:
+
+Do not modify Supabase schema without explicit instruction. Database is canonical.

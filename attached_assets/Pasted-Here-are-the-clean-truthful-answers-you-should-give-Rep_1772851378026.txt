@@ -1,0 +1,93 @@
+Here are the **clean, truthful answers** you should give Replit so it has the right mental model.
+
+---
+
+## 6. Known bugs or broken states
+
+Nothing structurally broken in the core engine.
+
+Current known realities:
+
+* Some **duplicate approved claims** exist from manual testing (status flipping in Supabase). These are dev artifacts, not real flows.
+* Admin pages rely on **service-role queries**, so RLS is not fully implemented yet.
+* Some admin screens could use **automatic refresh/revalidation** after actions.
+* Payables does **not exist yet** (releases stop at the ledger).
+* No major runtime errors in the normal claim → verify → approve → release flow.
+
+Core lifecycle is stable.
+
+---
+
+## 7. Payables engine intent
+
+Operational model:
+
+1. **Release is created**
+2. System **automatically creates a payable record**
+3. Admin sees payables in a **batch review screen**
+4. Admin triggers payout batch (Stripe / bank)
+5. Payables marked **paid**
+
+So:
+
+* Releases = money unlocked
+* Payables = money actually sent
+
+Admin approves batches, not individual payouts.
+
+---
+
+## 8. Current mobile state
+
+UI is **mobile-friendly but not mobile-optimized**.
+
+* Tailwind responsive layout mostly works
+* Forms and flows function on phones
+* Admin dashboards are still **desktop-biased**
+
+Mobile improvements are polish, not a rebuild.
+
+---
+
+## 9. Challenge activity types
+
+Current enum values:
+
+* `run`
+* `walk`
+* `cycle`
+
+Metric model today:
+
+* **distance-based only** (`distance_miles`)
+
+Future possibilities:
+
+* time-based
+* step-based
+
+But those are not implemented yet.
+
+---
+
+## 10. Challenge_Board_View
+
+Yes — this **exists in Supabase and is live**.
+
+Purpose:
+
+* Precomputed view for the athlete challenge board
+* Combines challenge data with pool availability and matching logic
+* Prevents heavy joins on the client
+
+It is already operational and used by the board.
+
+---
+
+## Final note for Replit
+
+Add this instruction:
+
+> The database (Supabase schema + RPC functions) is the canonical business logic layer. Avoid moving financial logic into API routes or frontend code.
+
+That keeps the ledger safe while AI accelerates everything else.

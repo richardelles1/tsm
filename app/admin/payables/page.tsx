@@ -1,9 +1,6 @@
-// OLD
-// (empty file / placeholder)
-
-// NEW
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import PayablesBatchAction from "@/components/PayablesBatchAction";
 
 type PayableRow = {
   id: string;
@@ -190,35 +187,30 @@ export default async function AdminPayablesPage() {
             </div>
           </div>
 
-          {/* Header */}
-          <div className="grid grid-cols-12 gap-3 px-6 py-3 text-xs text-white/55 border-b border-white/10">
-            <div className="col-span-4">Nonprofit</div>
-            <div className="col-span-2">Total Owed</div>
-            <div className="col-span-2"># Payables</div>
-            <div className="col-span-2">Oldest</div>
-            <div className="col-span-2">Newest</div>
-          </div>
-
           {/* Rows */}
           <div className="divide-y divide-white/10">
             {groups.map((g) => (
               <details key={g.nonprofit_id} className="group">
                 <summary className="list-none cursor-pointer">
-                  <div className="grid grid-cols-12 gap-3 px-6 py-4 hover:bg-white/5 transition">
-                    <div className="col-span-4 min-w-0">
+                  <div className="flex flex-wrap items-center gap-3 px-6 py-4 hover:bg-white/5 transition">
+                    <div className="flex-1 min-w-0">
                       <div className="font-medium truncate">{g.name}</div>
                       <div className="text-xs text-white/45 truncate">
                         {g.slug ? g.slug : g.nonprofit_id === "unknown" ? "unknown" : shortId(g.nonprofit_id)}
+                        <span className="ml-2 text-white/30">· {g.count} payable{g.count !== 1 ? "s" : ""}</span>
+                        <span className="ml-2 text-white/30">· oldest {fmtDate(g.oldest)}</span>
                       </div>
                     </div>
-                    <div className="col-span-2">
-                      <span className="inline-flex items-center rounded-full bg-[#FFD28F]/10 px-2 py-1 text-xs text-[#FFD28F] ring-1 ring-[#FFD28F]/20">
-                        {money(g.totalOwedCents)}
-                      </span>
+                    <span className="inline-flex items-center rounded-full bg-[#FFD28F]/10 px-3 py-1 text-sm text-[#FFD28F] ring-1 ring-[#FFD28F]/20 font-medium">
+                      {money(g.totalOwedCents)}
+                    </span>
+                    <div onClick={(e) => e.preventDefault()}>
+                      <PayablesBatchAction
+                        payableIds={g.items.map((p) => p.id)}
+                        nonprofitName={g.name}
+                        totalCents={g.totalOwedCents}
+                      />
                     </div>
-                    <div className="col-span-2 text-white/80">{g.count}</div>
-                    <div className="col-span-2 text-white/70">{fmtDate(g.oldest)}</div>
-                    <div className="col-span-2 text-white/70">{fmtDate(g.newest)}</div>
                   </div>
                 </summary>
 
@@ -280,9 +272,8 @@ export default async function AdminPayablesPage() {
                     </div>
                   </div>
 
-                  <div className="mt-3 text-[11px] text-white/45">
-                    Read-only view. Any payout action should be a separate “payout engine” step (so we don’t mutate money
-                    states from the UI).
+                  <div className="mt-3 text-[11px] text-white/35">
+                    Payouts recorded with provider + reference for full audit trail. Once marked paid, rows are removed from this queue.
                   </div>
                 </div>
               </details>

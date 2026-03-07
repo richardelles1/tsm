@@ -1,0 +1,241 @@
+1. SYSTEM_OVERVIEW.md
+
+(Purpose and product intent)
+
+Explain what The Shared Mile actually is.
+
+Example structure:
+
+# System Overview
+
+The Shared Mile (TSM) is a movement-triggered philanthropic marketplace.
+
+Donors commit funds first.
+Athletes unlock those funds through verified activity.
+
+Core lifecycle:
+Movement → Claim → Verification → Release → Payable
+
+System goals:
+- Trust and transparency
+- Accurate financial ledger
+- Clear athlete experience
+- Verifiable philanthropic impact
+
+This gives the AI the business context.
+
+2. ARCHITECTURE.md
+
+(How the system is structured)
+
+Example:
+
+# System Architecture
+
+Frontend
+- Challenge board
+- Claim flows
+- Athlete dashboards
+- Admin dashboards
+
+Backend
+- Claim engine
+- Verification engine
+- Release engine
+- Payables engine
+
+Database
+- athletes
+- claims
+- funding_pools
+- releases
+- payables
+
+Also describe:
+
+key routes
+
+API endpoints
+
+major flows
+
+3. INVARIANTS.md
+
+(Rules that must never break)
+
+Example:
+
+# System Invariants
+
+1. Only one active claim per athlete.
+2. Reserved claims expire after 90 seconds.
+3. Funding pools cannot go negative.
+4. Release amounts must reconcile with funding pools.
+5. Payables must reference a release.
+6. Financial integrity always overrides UI convenience.
+
+These are the hard guardrails.
+
+4. CLAIM_LIFECYCLE.md
+
+(State machine for the core system)
+
+Example:
+
+# Claim Lifecycle
+
+available → reserved → claimed → verified → released
+
+available
+Athlete can claim.
+
+reserved
+Temporary hold while athlete confirms.
+
+claimed
+Athlete commits to challenge.
+
+verified
+Activity is confirmed.
+
+released
+Funds are unlocked from funding pools.
+
+This prevents AI from breaking the state model.
+
+5. DATABASE_SCHEMA.md
+
+(High-level schema explanation)
+
+Do not paste raw SQL — explain relationships.
+
+Example:
+
+# Database Schema
+
+Tables
+
+athletes
+claims
+funding_pools
+releases
+payables
+
+Relationships
+
+athletes.id → claims.athlete_id
+claims.id → releases.claim_id
+releases.id → payables.release_id
+funding_pools.id → releases.funding_pool_id
+
+Important note:
+
+Supabase is the canonical source of truth.
+Financial logic lives in database RPC functions.
+6. PRODUCT_STATUS.md
+
+(What is finished vs in progress)
+
+Example:
+
+# Product Status
+
+Stable Systems
+- Claim submission
+- Verification queue
+- Admin approval
+- Release engine
+- Funding pool debiting
+- Releases ledger
+
+In Progress
+- Payables engine
+- Batch payout tools
+- Mobile UI optimization
+
+Future
+- Nonprofit portal
+- Corporate partner dashboards
+
+This prevents AI from rebuilding existing work.
+
+7. DOMAIN_LANGUAGE.md
+
+(Terminology so AI doesn’t invent new words)
+
+Example:
+
+# Domain Language
+
+Oriva
+Parent company.
+
+The Shared Mile (TSM)
+Primary product.
+
+Claim
+Athlete request to unlock pledged funds.
+
+Release
+Funds unlocked after verification.
+
+Payable
+Funds scheduled for payout to nonprofit.
+
+This stops naming drift like OMM vs TSM confusion.
+
+8. ADMIN_OPERATIONS.md
+
+(How the system is used operationally)
+
+Example:
+
+# Admin Operations
+
+Admin workflow:
+
+1. Review verification queue
+2. Approve claims
+3. Create releases
+4. Review payables
+5. Execute payout batch
+
+Admins can also:
+- view releases ledger
+- view funding pools
+
+This helps AI design correct admin tools.
+
+9. KNOWN_EDGE_CASES.md
+
+(Things that look like bugs but aren’t)
+
+Example:
+
+# Known Edge Cases
+
+Duplicate approved claims may appear during development testing.
+
+Release engine is idempotent:
+If a release already exists for a claim, no new release is created.
+
+Funding pools must never go negative.
+
+This prevents AI from breaking safety systems while “fixing” things.
+
+10. AI_RULES.md
+
+(Explicit constraints for AI agents)
+
+Example:
+
+# AI Rules
+
+Never modify without explicit instruction:
+
+- claim lifecycle logic
+- funding pool accounting
+- release financial math
+- database schema
+
+Financial integrity always takes priority over UI convenience.
