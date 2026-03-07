@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import HomeHero from "@/components/HomeHero";
 
 export default function HomePage() {
@@ -10,10 +11,55 @@ export default function HomePage() {
         <div className="absolute bottom-[-300px] right-[-150px] h-[700px] w-[700px] rounded-full bg-[radial-gradient(circle_at_center,rgba(255,210,143,0.10),transparent_65%)] blur-3xl" />
       </div>
 
+      {/* HERO */}
+      <section className="relative min-h-[92vh] flex flex-col items-center justify-center px-6 text-center overflow-hidden">
+        <div className="absolute inset-0">
+          <Image
+            src="/coming-soon-hero.png"
+            alt="Runner at sunrise"
+            fill
+            priority
+            className="object-cover opacity-30"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#070A12]/60 via-[#070A12]/50 to-[#070A12]" />
+        </div>
+
+        <div className="relative z-10 max-w-3xl">
+          <div className="inline-block mb-6 rounded-full bg-white/8 px-4 py-1.5 text-[10px] font-bold tracking-[0.22em] text-white/50 uppercase ring-1 ring-white/10">
+            Miles · Movement · Mission
+          </div>
+
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tight leading-[1.05]">
+            Movement<br />
+            <span className="text-[#FFD28F]">Unlocks Capital.</span>
+          </h1>
+
+          <p className="mt-6 text-lg sm:text-xl text-white/65 max-w-xl mx-auto leading-relaxed">
+            A marketplace where verified athletic activity releases committed funding to nonprofits. Every mile you run moves real money.
+          </p>
+
+          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link
+              href="/challenges"
+              className="w-full sm:w-auto inline-flex items-center justify-center rounded-full bg-[#FF9B6A] px-8 py-4 text-base font-bold text-[#0B0F1C] shadow-[0_12px_40px_rgba(255,155,106,0.30)] hover:bg-[#FFB48E] hover:-translate-y-0.5 transition-all"
+            >
+              Browse Challenges →
+            </Link>
+            <Link
+              href="/give"
+              className="w-full sm:w-auto inline-flex items-center justify-center rounded-full bg-transparent px-8 py-4 text-base ring-1 ring-white/20 text-white/80 hover:ring-white/35 hover:text-white transition"
+            >
+              Donate →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* WHO IT'S FOR — audience toggle */}
       <HomeHero />
 
       {/* HOW IT WORKS */}
-      <section id="how-it-works" className="relative px-6 py-24">
+      <section id="how-it-works" className="relative px-6 py-24 border-t border-white/8">
         <div className="mx-auto max-w-5xl">
           <div className="text-center mb-14">
             <div className="text-[10px] font-bold tracking-[0.22em] text-white/35 uppercase mb-3">How It Works</div>
@@ -29,7 +75,7 @@ export default function HomePage() {
                 color: "text-[#FF9B6A]",
                 glow: "rgba(255,155,106,0.12)",
                 title: "Claim a Challenge",
-                body: "Browse the marketplace and lock in a challenge — a distance commitment tied to a real funding amount for a specific nonprofit.",
+                body: "Browse the marketplace and lock in a challenge. A distance commitment tied to a real funding amount for a specific nonprofit.",
               },
               {
                 num: "02",

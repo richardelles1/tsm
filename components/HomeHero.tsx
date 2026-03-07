@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useState } from "react";
 
 type AudienceKey = "athletes" | "nonprofits" | "partners";
@@ -59,11 +58,11 @@ function AthletesPanel() {
   return (
     <div className="flex flex-col items-center">
       <Eyebrow text="For Athletes" />
-      <h1 className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tight leading-[1.05] mb-6">
+      <h2 className="text-4xl sm:text-5xl font-black tracking-tight leading-[1.05] mb-6">
         Add Meaning to<br />
         <span className="text-[#FFD28F]">Your Miles.</span>
-      </h1>
-      <p className="text-lg sm:text-xl text-white/60 max-w-lg mx-auto leading-relaxed mb-8">
+      </h2>
+      <p className="text-base sm:text-lg text-white/60 max-w-lg mx-auto leading-relaxed mb-8">
         You&apos;re already putting in the work. Now your miles can fund causes that matter. Claim a challenge, complete it, and watch real money move to a nonprofit you actually care about.
       </p>
       <div className="w-full max-w-sm mx-auto flex flex-col gap-3 mb-10 text-left">
@@ -93,11 +92,11 @@ function NonprofitsPanel() {
   return (
     <div className="flex flex-col items-center">
       <Eyebrow text="For Nonprofits" />
-      <h1 className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tight leading-[1.05] mb-6">
+      <h2 className="text-4xl sm:text-5xl font-black tracking-tight leading-[1.05] mb-6">
         Turn Movement<br />
         <span className="text-[#FFD28F]">Into Momentum.</span>
-      </h1>
-      <p className="text-lg sm:text-xl text-white/60 max-w-lg mx-auto leading-relaxed mb-6">
+      </h2>
+      <p className="text-base sm:text-lg text-white/60 max-w-lg mx-auto leading-relaxed mb-6">
         A funding source that doesn&apos;t require a gala, a campaign, or asking your donors for more. Athletes earn it. Corporate partners match it. You receive it.
       </p>
       <div className="w-full max-w-lg mx-auto rounded-2xl bg-[#FFD28F]/8 ring-1 ring-[#FFD28F]/15 px-5 py-4 mb-8 text-left">
@@ -126,11 +125,11 @@ function PartnersPanel() {
   return (
     <div className="flex flex-col items-center">
       <Eyebrow text="For Impact Partners" />
-      <h1 className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tight leading-[1.05] mb-6">
+      <h2 className="text-4xl sm:text-5xl font-black tracking-tight leading-[1.05] mb-6">
         Amplify<br />
         <span className="text-[#FFD28F]">Every Mile.</span>
-      </h1>
-      <p className="text-lg sm:text-xl text-white/60 max-w-lg mx-auto leading-relaxed mb-8">
+      </h2>
+      <p className="text-base sm:text-lg text-white/60 max-w-lg mx-auto leading-relaxed mb-8">
         You commit the funds. Athletes activate them. We give you the story, for your board, your team, and anyone watching your ESG commitments.
       </p>
       <div className="w-full max-w-sm mx-auto flex flex-col gap-3 mb-10 text-left">
@@ -159,27 +158,22 @@ export default function HomeHero() {
   const [active, setActive] = useState<AudienceKey>("athletes");
 
   return (
-    <section className="relative min-h-[92vh] flex flex-col items-center justify-center px-6 text-center overflow-hidden">
-      <div className="absolute inset-0">
-        <Image
-          src="/coming-soon-hero.png"
-          alt="Runner at sunrise"
-          fill
-          priority
-          className="object-cover opacity-30"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#070A12]/60 via-[#070A12]/50 to-[#070A12]" />
-      </div>
+    <section className="relative px-6 py-20 bg-[#070A12]">
+      <div className="mx-auto max-w-2xl text-center">
 
-      <div className="relative z-10 w-full max-w-2xl mx-auto py-16">
-        {/* Audience toggle */}
-        <div className="flex justify-center mb-12">
-          <div className="inline-flex items-center gap-1 rounded-full bg-white/6 ring-1 ring-white/10 p-1">
+        {/* Section label */}
+        <div className="text-[10px] font-bold tracking-[0.22em] text-white/30 uppercase mb-8">
+          Who It&apos;s For
+        </div>
+
+        {/* Audience toggle — equal width pills */}
+        <div className="flex justify-center mb-14">
+          <div className="flex w-full max-w-sm rounded-full bg-white/6 ring-1 ring-white/10 p-1 gap-1">
             {TABS.map(({ key, label }) => (
               <button
                 key={key}
                 onClick={() => setActive(key)}
-                className={`px-4 py-2 rounded-full text-xs font-bold tracking-wide transition-all duration-200 ${
+                className={`flex-1 py-2.5 rounded-full text-xs font-bold tracking-wide transition-all duration-200 ${
                   active === key
                     ? "bg-[#FF9B6A] text-[#0B0F1C] shadow-[0_4px_16px_rgba(255,155,106,0.35)]"
                     : "text-white/50 hover:text-white/80"
@@ -191,7 +185,7 @@ export default function HomeHero() {
           </div>
         </div>
 
-        {/* Panels — overlaid in same grid cell for crossfade */}
+        {/* Panels — overlaid for crossfade */}
         <div className="grid">
           <div
             className={`col-start-1 row-start-1 transition-opacity duration-300 ${
