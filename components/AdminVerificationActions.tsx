@@ -3,7 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function AdminVerificationActions({ id }: { id: string }) {
+type Props = {
+  id: string;
+  onDone?: (id: string, action: "approve" | "reject") => void;
+};
+
+export default function AdminVerificationActions({ id, onDone }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState<"approve" | "reject" | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +29,9 @@ export default function AdminVerificationActions({ id }: { id: string }) {
       return;
     }
 
+    setLoading(null);
     router.refresh();
+    onDone?.(id, action);
   }
 
   return (

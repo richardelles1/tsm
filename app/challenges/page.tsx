@@ -99,6 +99,12 @@ export default function ChallengesPage() {
       return;
     }
 
+    await supabase
+      .from("claims")
+      .update({ status: "expired", expires_at: new Date().toISOString() })
+      .eq("athlete_id", user.id)
+      .eq("status", "reserved");
+
     const expiresAt = new Date(Date.now() + 90 * 1000).toISOString();
     const { error } = await supabase.from("claims").insert({
       challenge_id: c.challenge_id,
@@ -146,7 +152,7 @@ export default function ChallengesPage() {
         .from("claims")
         .select("id")
         .eq("athlete_id", athlete.id)
-        .eq("status", "claimed")
+        .in("status", ["claimed", "submitted"])
         .limit(1);
 
       if (!cancelled) setHasActiveClaim(!!activeClaim?.length);
@@ -325,44 +331,63 @@ export default function ChallengesPage() {
                         </div>
                       )}
 
-                      {/* Money block */}
-                      <div>
-                        <div className="text-[#FFD28F] text-3xl font-semibold leading-none">
-                          {base}
+                      {/* Money block + stacked logos */}
+                      <div className="flex items-end justify-between gap-3">
+                        {/* Left: money text */}
+                        <div className="min-w-0">
+                          <div className="text-[#FFD28F] text-3xl font-semibold leading-none">
+                            {base}
+                          </div>
+                          {hasMatch && (
+                            <div className="mt-1 text-xs text-white/45">
+                              {impact} with match
+                            </div>
+                          )}
+                          <div className="mt-1 text-xs text-white/35">unlocked on approval</div>
                         </div>
-                        {hasMatch && (
-                          <div className="mt-1 text-xs text-white/45">
-                            {impact} with match
+
+                        {/* Right: stacked nonprofit + PMP logos */}
+                        {(c.nonprofit_name || hasMatch) && (
+                          <div className="flex flex-col items-center shrink-0">
+                            {/* Nonprofit logo or letter avatar */}
+                            {c.nonprofit_logo_url ? (
+                              <img
+                                src={c.nonprofit_logo_url}
+                                alt={c.nonprofit_name ?? ""}
+                                className="h-10 w-10 rounded-full object-cover ring-1 ring-white/20"
+                              />
+                            ) : c.nonprofit_name ? (
+                              <div className="h-10 w-10 rounded-full bg-white/10 ring-1 ring-white/15 flex items-center justify-center text-sm font-bold text-white/60">
+                                {c.nonprofit_name.charAt(0).toUpperCase()}
+                              </div>
+                            ) : null}
+
+                            {/* PMP badge — overlaps slightly */}
+                            {hasMatch && c.corporate_partner_name && (
+                              <div className="-mt-2 h-8 w-8 rounded-full bg-[#FFD28F]/10 ring-1 ring-[#FFD28F]/30 flex items-center justify-center text-[9px] font-black text-[#FFD28F] tracking-wide">
+                                {c.corporate_partner_name.slice(0, 2).toUpperCase()}
+                              </div>
+                            )}
                           </div>
                         )}
-                        <div className="mt-1 text-xs text-white/35">unlocked on approval</div>
                       </div>
 
-                      {/* Beneficiary row — full width, no truncation pressure */}
+                      {/* Beneficiary names row */}
                       {(c.nonprofit_name || c.corporate_partner_name) && (
-                        <div className="flex items-center gap-2 pt-1 border-t border-white/6">
-                          {c.nonprofit_logo_url && (
-                            <img
-                              src={c.nonprofit_logo_url}
-                              alt={c.nonprofit_name ?? ""}
-                              className="h-6 w-6 rounded-full object-cover ring-1 ring-white/20 shrink-0"
-                            />
+                        <div className="flex items-center gap-1.5 flex-wrap pt-1 border-t border-white/6">
+                          {c.nonprofit_name && (
+                            <span className="text-xs text-white/65 font-medium">
+                              {c.nonprofit_name}
+                            </span>
                           )}
-                          <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                            {c.nonprofit_name && (
-                              <span className="text-xs text-white/65 font-medium">
-                                {c.nonprofit_name}
+                          {hasMatch && c.corporate_partner_name && (
+                            <>
+                              <span className="text-white/20 text-xs">·</span>
+                              <span className="text-[10px] text-white/35">
+                                + {c.corporate_partner_name}
                               </span>
-                            )}
-                            {hasMatch && c.corporate_partner_name && (
-                              <>
-                                <span className="text-white/20 text-xs">·</span>
-                                <span className="text-[10px] text-white/35">
-                                  + {c.corporate_partner_name}
-                                </span>
-                              </>
-                            )}
-                          </div>
+                            </>
+                          )}
                         </div>
                       )}
 

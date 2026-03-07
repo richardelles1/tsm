@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import AdminVerificationActions from "./AdminVerificationActions";
 
@@ -74,9 +74,45 @@ function activityColor(a: string | null | undefined) {
   return ACTIVITY_COLOR[(a ?? "").toLowerCase()] ?? "text-white/60";
 }
 
-export default function AdminCommandCenter({ verifications, alerts, challenges }: Props) {
-  const defaultTab = verifications.length > 0 ? "verifications" : "challenges";
+export default function AdminCommandCenter({ verifications: initialVerifications, alerts, challenges }: Props) {
+  const defaultTab = initialVerifications.length > 0 ? "verifications" : "challenges";
   const [tab, setTab] = useState<"verifications" | "alerts" | "challenges">(defaultTab);
+
+  const [verifications, setVerifications] = useState<VerificationRow[]>(initialVerifications);
+  const [flashingIds, setFlashingIds] = useState<Set<string>>(new Set());
+  const [exitingIds, setExitingIds] = useState<Set<string>>(new Set());
+
+  const handleDone = useCallback((id: string, action: "approve" | "reject") => {
+    if (action === "approve") {
+      setFlashingIds((prev) => new Set(prev).add(id));
+      setTimeout(() => {
+        setFlashingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+        setExitingIds((prev) => new Set(prev).add(id));
+        setTimeout(() => {
+          setVerifications((prev) => prev.filter((v) => v.id !== id));
+          setExitingIds((prev) => {
+            const next = new Set(prev);
+            next.delete(id);
+            return next;
+          });
+        }, 350);
+      }, 650);
+    } else {
+      setExitingIds((prev) => new Set(prev).add(id));
+      setTimeout(() => {
+        setVerifications((prev) => prev.filter((v) => v.id !== id));
+        setExitingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+      }, 350);
+    }
+  }, []);
 
   const tabs = [
     { key: "verifications", label: "Verifications", count: verifications.length },
@@ -143,47 +179,71 @@ export default function AdminCommandCenter({ verifications, alerts, challenges }
               <div className="space-y-4">
                 {verifications.map((row) => {
                   const activity = row.challenges?.activity ?? null;
+                  const isFlashing = flashingIds.has(row.id);
+                  const isExiting = exitingIds.has(row.id);
+
                   return (
                     <div
                       key={row.id}
-                      className="rounded-2xl bg-white/4 ring-1 ring-white/8 p-4"
+                      style={{
+                        transition: "background-color 300ms ease, box-shadow 300ms ease, opacity 350ms ease, max-height 350ms ease",
+                        maxHeight: isExiting ? "0px" : "600px",
+                        opacity: isExiting ? 0 : 1,
+                        overflow: "hidden",
+                      }}
                     >
-                      <div className="flex items-start justify-between gap-3 mb-3">
-                        <div>
-                          <div className={`text-[10px] font-bold uppercase tracking-widest ${activityColor(activity)}`}>
-                            {activityLabel(activity)}
+                      <div
+                        className={[
+                          "rounded-2xl ring-1 p-4 transition-colors duration-300",
+                          isFlashing
+                            ? "bg-emerald-500/15 ring-emerald-400/40 shadow-[0_0_28px_4px_rgba(52,211,153,0.15)]"
+                            : "bg-white/4 ring-white/8",
+                        ].join(" ")}
+                      >
+                        {isFlashing && (
+                          <div className="mb-3 flex items-center gap-2 text-emerald-400 text-xs font-semibold">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            Approved — releasing funds…
                           </div>
-                          <div className="mt-0.5 font-medium leading-snug">
-                            {row.challenges?.title ?? "Untitled Challenge"}
+                        )}
+
+                        <div className="flex items-start justify-between gap-3 mb-3">
+                          <div>
+                            <div className={`text-[10px] font-bold uppercase tracking-widest ${activityColor(activity)}`}>
+                              {activityLabel(activity)}
+                            </div>
+                            <div className="mt-0.5 font-medium leading-snug">
+                              {row.challenges?.title ?? "Untitled Challenge"}
+                            </div>
+                            <div className="text-xs text-white/35 mt-0.5">
+                              {row.distance_miles_snapshot ? `${row.distance_miles_snapshot} mi · ` : ""}
+                              Submitted {fmtDate(row.submitted_at)}
+                            </div>
                           </div>
-                          <div className="text-xs text-white/35 mt-0.5">
-                            {row.distance_miles_snapshot ? `${row.distance_miles_snapshot} mi · ` : ""}
-                            Submitted {fmtDate(row.submitted_at)}
+                          <div className="text-right shrink-0">
+                            <div className="text-[#FFD28F] font-semibold text-lg">
+                              {money(row.challenges?.amount_cents)}
+                            </div>
+                            <div className="text-[10px] text-white/30">to unlock</div>
                           </div>
                         </div>
-                        <div className="text-right shrink-0">
-                          <div className="text-[#FFD28F] font-semibold text-lg">
-                            {money(row.challenges?.amount_cents)}
+
+                        {row.verification_photo_url && (
+                          <div className="mb-3">
+                            <img
+                              src={row.verification_photo_url}
+                              alt="Verification"
+                              className="rounded-xl ring-1 ring-white/10 max-h-40 w-full object-cover"
+                            />
                           </div>
-                          <div className="text-[10px] text-white/30">to unlock</div>
+                        )}
+
+                        <div className="text-[10px] text-white/25 font-mono mb-2">
+                          claim {row.id.slice(0, 12)}…
                         </div>
+
+                        <AdminVerificationActions id={row.id} onDone={handleDone} />
                       </div>
-
-                      {row.verification_photo_url && (
-                        <div className="mb-3">
-                          <img
-                            src={row.verification_photo_url}
-                            alt="Verification"
-                            className="rounded-xl ring-1 ring-white/10 max-h-40 w-full object-cover"
-                          />
-                        </div>
-                      )}
-
-                      <div className="text-[10px] text-white/25 font-mono mb-2">
-                        claim {row.id.slice(0, 12)}…
-                      </div>
-
-                      <AdminVerificationActions id={row.id} />
                     </div>
                   );
                 })}
