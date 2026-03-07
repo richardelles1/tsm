@@ -50,6 +50,7 @@
     "tailwind-variants": "^1.0.0"
   },
   "devDependencies": {
+    "@types/canvas-confetti": "^1.9.0",
     "@types/imap": "^0.8.42",
     "@types/long": "^5.0.0",
     "@types/mailparser": "^3.4.6",

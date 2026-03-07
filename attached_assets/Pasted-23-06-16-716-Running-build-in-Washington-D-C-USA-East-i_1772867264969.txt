@@ -1,0 +1,62 @@
+23:06:16.716 Running build in Washington, D.C., USA (East) – iad1
+23:06:16.716 Build machine configuration: 2 cores, 8 GB
+23:06:16.727 Cloning github.com/richardelles1/tsm (Branch: main, Commit: e713f0d)
+23:06:16.728 Skipping build cache, deployment was triggered without cache.
+23:06:17.268 Cloning completed: 541.000ms
+23:06:21.649 Running "vercel build"
+23:06:22.272 Vercel CLI 50.28.0
+23:06:22.601 Installing dependencies...
+23:06:25.815 npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+23:06:26.410 npm warn deprecated lodash.template@4.5.0: This package is deprecated. Use https://socket.dev/npm/package/eta instead.
+23:06:26.672 npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+23:06:27.881 npm warn deprecated @types/long@5.0.0: This is a stub types definition. long provides its own type definitions, so you do not need this installed.
+23:06:28.457 npm warn deprecated @humanwhocodes/config-array@0.11.14: Use @eslint/config-array instead
+23:06:28.498 npm warn deprecated @supabase/auth-helpers-shared@0.7.0: This package is now deprecated - please use the @supabase/ssr package instead.
+23:06:28.543 npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+23:06:28.874 npm warn deprecated gm@1.25.1: The gm module has been sunset. Please migrate to an alternative. https://github.com/aheckmann/gm?tab=readme-ov-file#2025-02-24-this-project-is-not-maintained
+23:06:28.890 npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+23:06:28.943 npm warn deprecated rimraf@2.7.1: Rimraf versions prior to v4 are no longer supported
+23:06:28.963 npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+23:06:29.154 npm warn deprecated @supabase/auth-helpers-nextjs@0.10.0: This package is now deprecated - please use the @supabase/ssr package instead.
+23:06:29.284 npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+23:06:33.443 npm warn deprecated eslint@8.56.0: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+23:06:42.320 
+23:06:42.320 added 760 packages in 19s
+23:06:42.321 
+23:06:42.321 225 packages are looking for funding
+23:06:42.321   run `npm fund` for details
+23:06:42.693 Detected Next.js version: 15.5.12
+23:06:42.701 Running "npm run build"
+23:06:42.811 
+23:06:42.811 > omm@0.1.0 build
+23:06:42.811 > next build
+23:06:42.812 
+23:06:43.788 Attention: Next.js now collects completely anonymous telemetry regarding usage.
+23:06:43.788 This information is used to shape Next.js' roadmap and prioritize features.
+23:06:43.789 You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+23:06:43.790 https://nextjs.org/telemetry
+23:06:43.790 
+23:06:44.014    ▲ Next.js 15.5.12
+23:06:44.014 
+23:06:44.074    Creating an optimized production build ...
+23:06:57.589 Browserslist: browsers data (caniuse-lite) is 10 months old. Please run:
+23:06:57.590   npx update-browserslist-db@latest
+23:06:57.590   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+23:07:01.203  ✓ Compiled successfully in 16.7s
+23:07:01.205    Skipping linting
+23:07:01.206    Checking validity of types ...
+23:07:08.581 Failed to compile.
+23:07:08.582 
+23:07:08.583 ./app/challengecomplete/[id]/page.tsx:36:46
+23:07:08.583 Type error: Could not find a declaration file for module 'canvas-confetti'. '/vercel/path0/node_modules/canvas-confetti/src/confetti.js' implicitly has an 'any' type.
+23:07:08.583   Try `npm i --save-dev @types/canvas-confetti` if it exists or add a new declaration (.d.ts) file containing `declare module 'canvas-confetti';`
+23:07:08.583 
+23:07:08.584 [0m [90m 34 |[39m
+23:07:08.584  [90m 35 |[39m [36masync[39m [36mfunction[39m fireConfetti() {
+23:07:08.584 [31m[1m>[22m[39m[90m 36 |[39m   [36mconst[39m { [36mdefault[39m[33m:[39m confetti } [33m=[39m [36mawait[39m [36mimport[39m([32m"canvas-confetti"[39m)[33m;[39m
+23:07:08.584  [90m    |[39m                                              [31m[1m^[22m[39m
+23:07:08.584  [90m 37 |[39m   [36mconst[39m colors [33m=[39m [[32m"#FFD28F"[39m[33m,[39m [32m"#FF9B6A"[39m[33m,[39m [32m"#C4EBF2"[39m[33m,[39m [32m"#ffffff"[39m[33m,[39m [32m"#FFB48E"[39m][33m;[39m
+23:07:08.585  [90m 38 |[39m   confetti({ particleCount[33m:[39m [35m80[39m[33m,[39m spread[33m:[39m [35m65[39m[33m,[39m origin[33m:[39m { y[33m:[39m [35m0.55[39m }[33m,[39m colors })[33m;[39m
+23:07:08.585  [90m 39 |[39m   setTimeout([36masync[39m () [33m=>[39m {[0m
+23:07:08.620 Next.js build worker exited with code: 1 and signal: null
+23:07:08.681 Error: Command "npm run build" exited with 1
