@@ -25,7 +25,7 @@ export default function HomePage() {
 
         <div className="relative z-10 max-w-3xl">
           <div className="inline-block mb-6 rounded-full bg-white/8 px-4 py-1.5 text-[10px] font-bold tracking-[0.22em] text-white/50 uppercase ring-1 ring-white/10">
-            The Shared Mile · by Oriva
+            Miles · Movement · Mission
           </div>
 
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tight leading-[1.05]">
@@ -166,10 +166,9 @@ export default function HomePage() {
         <div className="mx-auto max-w-5xl flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
             <img src="/tsm-logo.jpeg" alt="The Shared Mile" className="h-8 w-auto rounded mb-1" />
-            <div className="text-[10px] text-white/25">Powered by Oriva</div>
           </div>
           <div className="flex gap-6 text-xs text-white/40">
-            <Link href="/challenges" className="hover:text-white/70 transition">Challenges</Link>
+            <Link href="/challenges" className="hover:text-white/70 transition">Miles Marketplace</Link>
             <Link href="/give" className="hover:text-white/70 transition">Give</Link>
             <Link href="/authorization" className="hover:text-white/70 transition">Log In</Link>
           </div>

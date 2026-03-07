@@ -60,16 +60,6 @@ export async function GET(req: NextRequest) {
           >
             The Shared Mile
           </div>
-          <div
-            style={{
-              fontSize: 14,
-              letterSpacing: "0.15em",
-              color: "rgba(255,255,255,0.20)",
-              textTransform: "uppercase",
-            }}
-          >
-            by Oriva
-          </div>
         </div>
 
         {/* Center content */}
