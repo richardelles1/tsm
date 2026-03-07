@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { motion } from "framer-motion";
-import confetti from "canvas-confetti";
 
 type NonprofitMini = { name: string | null; logo_url: string | null } | null;
 
@@ -33,14 +32,17 @@ function milesStr(v?: number | null) {
   return `${v % 1 === 0 ? v.toFixed(0) : v.toFixed(1)}`;
 }
 
-function fireConfetti() {
+async function fireConfetti() {
+  const { default: confetti } = await import("canvas-confetti");
   const colors = ["#FFD28F", "#FF9B6A", "#C4EBF2", "#ffffff", "#FFB48E"];
   confetti({ particleCount: 80, spread: 65, origin: { y: 0.55 }, colors });
-  setTimeout(() => {
-    confetti({ particleCount: 50, spread: 90, origin: { y: 0.45, x: 0.25 }, colors });
+  setTimeout(async () => {
+    const { default: c } = await import("canvas-confetti");
+    c({ particleCount: 50, spread: 90, origin: { y: 0.45, x: 0.25 }, colors });
   }, 200);
-  setTimeout(() => {
-    confetti({ particleCount: 50, spread: 90, origin: { y: 0.45, x: 0.75 }, colors });
+  setTimeout(async () => {
+    const { default: c } = await import("canvas-confetti");
+    c({ particleCount: 50, spread: 90, origin: { y: 0.45, x: 0.75 }, colors });
   }, 350);
 }
 

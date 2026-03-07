@@ -1,157 +1,153 @@
-// app/admin/partnerfunds/page.tsx
+import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-function formatUsdFromCents(cents: number | null | undefined) {
-  const safe = typeof cents === "number" ? cents : 0;
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 2,
-  }).format(safe / 100);
+function money(cents: number | null | undefined) {
+  const v = typeof cents === "number" ? cents : 0;
+  return `$${(v / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 export default async function PartnerFundsPage() {
   const supabase = createSupabaseServerClient();
 
-  // --- DATA: corporate partner pools only ---
-  // Join partner so the table is readable (name + slug like DonorFunds does for nonprofits)
   const { data: pools, error } = await supabase
     .from("funding_pools")
-    .select(
-      `
-      id,
-      pool_type,
-      source_name,
-      source_type,
+    .select(`
+      id, pool_type, source_name, source_type,
       corporate_partner_pmp_id,
-      total_amount_cents,
-      remaining_amount_cents,
-      currency,
-      is_active,
-      created_at,
-      corporate_partners_pmp:corporate_partner_pmp_id (
-        id,
-        name,
-        slug
-      )
-    `
-    )
+      total_amount_cents, remaining_amount_cents,
+      currency, is_active, created_at,
+      corporate_partners_pmp:corporate_partner_pmp_id ( id, name, slug )
+    `)
     .eq("source_type", "corporate_partner")
     .order("created_at", { ascending: false });
 
   const poolCount = (pools ?? []).length;
   const remainingSum = (pools ?? []).reduce((sum: number, p: any) => {
-    const v = typeof p?.remaining_amount_cents === "number" ? p.remaining_amount_cents : 0;
-    return sum + v;
+    return sum + (typeof p?.remaining_amount_cents === "number" ? p.remaining_amount_cents : 0);
+  }, 0);
+  const totalSum = (pools ?? []).reduce((sum: number, p: any) => {
+    return sum + (typeof p?.total_amount_cents === "number" ? p.total_amount_cents : 0);
   }, 0);
 
   return (
-    <div className="p-8 space-y-6">
-      {/* --- HEADER --- */}
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">Partner Funds</h1>
-        <p className="text-sm text-neutral-500">
-          Inventory view of corporate partner money currently available in pools. (No donor pools shown here.)
-        </p>
-
-        {/* Match DonorFunds summary line */}
-        {!error ? (
-          <div className="text-xs text-neutral-500">
-            Pools: <span className="font-medium">{poolCount}</span> • Remaining:{" "}
-            <span className="font-medium">{formatUsdFromCents(remainingSum)}</span>
-          </div>
-        ) : null}
+    <main className="min-h-screen bg-[#070A12] text-white">
+      <div className="pointer-events-none fixed inset-0 opacity-40">
+        <div className="absolute -top-48 left-1/2 h-[560px] w-[560px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(255,210,143,0.12),transparent_60%)] blur-2xl" />
       </div>
 
-      {/* --- ERROR STATE --- */}
-      {error ? (
-        <div className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-800">
-          <div className="font-semibold">Couldn’t load partner funds.</div>
-          <div className="mt-1 opacity-80">{error.message}</div>
+      <div className="relative mx-auto max-w-6xl px-6 py-12">
+        {/* Header */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-8">
+          <div>
+            <div className="text-xs text-white/40 mb-1">Admin</div>
+            <h1 className="text-3xl font-semibold tracking-tight">Partner Funds</h1>
+            <p className="text-sm text-white/45 mt-1">
+              Corporate partner matching capital across all pools.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Link href="/admin/pmpentry" className="rounded-full bg-[#FFD28F]/10 px-4 py-2 text-sm text-[#FFD28F] ring-1 ring-[#FFD28F]/20 hover:ring-[#FFD28F]/35 transition">
+              + PMP Entry
+            </Link>
+            <Link href="/admin" className="rounded-full bg-[#0D1326] px-4 py-2 text-sm ring-1 ring-white/10 hover:ring-white/20 transition">
+              ← Dashboard
+            </Link>
+          </div>
         </div>
-      ) : null}
 
-      {/* --- TABLE --- */}
-      <div className="overflow-x-auto rounded-xl border">
-        <table className="min-w-[900px] w-full text-sm">
-          <thead className="bg-neutral-50">
-            <tr className="border-b">
-              <th className="text-left p-3">Pool</th>
-              <th className="text-left p-3">Partner</th>
-              <th className="text-left p-3">Type</th>
-              <th className="text-right p-3">Total</th>
-              <th className="text-right p-3">Remaining</th>
-              <th className="text-center p-3">Active</th>
-            </tr>
-          </thead>
+        {/* KPI row */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8">
+          <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-4">
+            <div className="text-xs text-white/35 uppercase tracking-wider mb-1">Pools</div>
+            <div className="text-2xl font-bold">{poolCount}</div>
+          </div>
+          <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-4">
+            <div className="text-xs text-white/35 uppercase tracking-wider mb-1">Total Committed</div>
+            <div className="text-2xl font-bold text-[#FFD28F]">{money(totalSum)}</div>
+          </div>
+          <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-4 col-span-2 sm:col-span-1">
+            <div className="text-xs text-white/35 uppercase tracking-wider mb-1">Remaining</div>
+            <div className="text-2xl font-bold text-[#C4EBF2]">{money(remainingSum)}</div>
+          </div>
+        </div>
 
-          <tbody>
-            {(pools ?? []).length === 0 ? (
-              <tr>
-                <td className="p-6 text-neutral-500" colSpan={6}>
-                  No partner pools found yet.
-                </td>
-              </tr>
-            ) : (
-              pools!.map((pool: any) => {
-                const partnerName = pool?.corporate_partners_pmp?.name ?? "—";
-                const partnerSlug = pool?.corporate_partners_pmp?.slug ?? null;
+        {error && (
+          <div className="mb-6 rounded-2xl bg-red-500/10 ring-1 ring-red-500/25 p-4 text-sm text-red-200">
+            {error.message}
+          </div>
+        )}
 
-                return (
-                  <tr key={pool.id} className="border-b last:border-b-0">
-                    <td className="p-3">
-                      <div className="font-medium">{pool.source_name ?? "Untitled Pool"}</div>
-                      <div className="text-xs text-neutral-500">{pool.id}</div>
-                    </td>
-
-                    <td className="p-3">
-                      <div className="font-medium">{partnerName}</div>
-                      <div className="text-xs text-neutral-500">
-                        {partnerSlug ? partnerSlug : pool.corporate_partner_pmp_id ?? "—"}
-                      </div>
-                    </td>
-
-                    <td className="p-3">
-                      <span className="rounded-full border px-2 py-1 text-xs">
-                        {pool.source_type}
-                      </span>
-                    </td>
-
-                    <td className="p-3 text-right">
-                      {formatUsdFromCents(pool.total_amount_cents)}
-                    </td>
-
-                    <td className="p-3 text-right">
-                      {formatUsdFromCents(pool.remaining_amount_cents)}
-                    </td>
-
-                    <td className="p-3 text-center">
-                      <span
-                        className={[
-                          "inline-flex items-center rounded-full px-2 py-1 text-xs",
-                          pool.is_active
-                            ? "bg-emerald-50 text-emerald-700"
-                            : "bg-neutral-100 text-neutral-600",
-                        ].join(" ")}
-                      >
-                        {pool.is_active ? "Yes" : "No"}
-                      </span>
+        {/* Table */}
+        <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 backdrop-blur-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[700px]">
+              <thead>
+                <tr className="border-b border-white/8">
+                  <th className="text-left px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-white/35">Pool</th>
+                  <th className="text-left px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-white/35">Partner</th>
+                  <th className="text-left px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-white/35">Type</th>
+                  <th className="text-right px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-white/35">Total</th>
+                  <th className="text-right px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-white/35">Remaining</th>
+                  <th className="text-center px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-white/35">Active</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(pools ?? []).length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-5 py-10 text-center text-white/30 text-sm">
+                      No partner pools found yet.
                     </td>
                   </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
+                ) : (
+                  pools!.map((pool: any) => {
+                    const partnerName = pool?.corporate_partners_pmp?.name ?? "—";
+                    const partnerSlug = pool?.corporate_partners_pmp?.slug ?? null;
+                    const total = typeof pool?.total_amount_cents === "number" ? pool.total_amount_cents : 0;
+                    const remaining = typeof pool?.remaining_amount_cents === "number" ? pool.remaining_amount_cents : 0;
+                    const pct = total > 0 ? Math.round((remaining / total) * 100) : 0;
 
-      {/* --- FOOTNOTE --- */}
-      <div className="text-xs text-neutral-500">
-        Note: This view reads{" "}
-        <code className="px-1 py-0.5 rounded bg-neutral-100">funding_pools</code> where{" "}
-        <code className="px-1 py-0.5 rounded bg-neutral-100">source_type</code> is{" "}
-        <code className="px-1 py-0.5 rounded bg-neutral-100">corporate_partner</code>.
+                    return (
+                      <tr key={pool.id} className="border-b border-white/5 last:border-b-0 hover:bg-white/[0.03] transition">
+                        <td className="px-5 py-4">
+                          <div className="font-medium text-white/90">{pool.source_name ?? "Untitled Pool"}</div>
+                          <div className="text-[10px] text-white/25 mt-0.5 font-mono">{pool.id?.slice(0, 12)}…</div>
+                        </td>
+                        <td className="px-5 py-4">
+                          <div className="text-white/70">{partnerName}</div>
+                          {partnerSlug && <div className="text-[10px] text-white/30">{partnerSlug}</div>}
+                        </td>
+                        <td className="px-5 py-4">
+                          <span className="inline-block rounded-full bg-white/8 px-2 py-0.5 text-[10px] text-white/50 ring-1 ring-white/10">
+                            {pool.pool_type ?? pool.source_type ?? "—"}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 text-right text-white/70">{money(total)}</td>
+                        <td className="px-5 py-4 text-right">
+                          <span className="text-[#FFD28F] font-medium">{money(remaining)}</span>
+                          <div className="text-[10px] text-white/25 mt-0.5">{pct}% left</div>
+                        </td>
+                        <td className="px-5 py-4 text-center">
+                          <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] ring-1 ${
+                            pool.is_active
+                              ? "bg-emerald-500/10 text-emerald-300 ring-emerald-500/25"
+                              : "bg-white/5 text-white/30 ring-white/10"
+                          }`}>
+                            {pool.is_active ? "Active" : "Inactive"}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="mt-6 text-[10px] text-white/20">
+          Reads <span className="font-mono">funding_pools</span> where <span className="font-mono">source_type = corporate_partner</span>
+        </div>
       </div>
-    </div>
+    </main>
   );
 }

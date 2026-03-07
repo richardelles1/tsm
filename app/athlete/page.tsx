@@ -250,7 +250,7 @@ export default function AthletePage() {
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}>
             <div className="text-xs font-bold tracking-[0.15em] text-white/35 uppercase mb-3">Active Challenge</div>
             <Link
-              href={`/verify/${activeClaim.id}`}
+              href="/activechallenge"
               className="flex items-center justify-between rounded-3xl bg-white/5 ring-1 ring-[#FF9B6A]/25 backdrop-blur-xl p-5 hover:ring-[#FF9B6A]/45 hover:bg-white/8 transition shadow-[0_0_30px_rgba(255,155,106,0.08)]"
             >
               <div>
@@ -262,7 +262,7 @@ export default function AthletePage() {
                 </div>
               </div>
               <div className="rounded-full bg-[#FF9B6A] px-4 py-2 text-xs font-bold text-[#0B0F1C] shrink-0 ml-3">
-                Verify →
+                View →
               </div>
             </Link>
           </motion.div>

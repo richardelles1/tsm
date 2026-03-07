@@ -10,123 +10,60 @@ type AuthStatus = "idle" | "loading" | "check_email";
 export default function AuthorizationPage() {
   const router = useRouter();
 
-  // ✅ Defer Supabase client until after mount (prevents server crash)
-  const [supabase, setSupabase] = useState<
-    ReturnType<typeof createSupabaseBrowserClient> | null
-  >(null);
-
+  const [supabase, setSupabase] = useState<ReturnType<typeof createSupabaseBrowserClient> | null>(null);
   const [mode, setMode] = useState<AuthMode>("login");
   const [status, setStatus] = useState<AuthStatus>("idle");
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [error, setError] = useState<string | null>(null);
+  const [resent, setResent] = useState(false);
 
   useEffect(() => {
     setSupabase(createSupabaseBrowserClient({ persistSession: true }));
   }, []);
 
-  // Handle already-authenticated users
   useEffect(() => {
     if (!supabase) return;
     handleExistingSession();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabase]);
 
   function withTimeout<T>(promise: Promise<T>, ms: number, label: string) {
-    let timeoutId: any;
-    const timeout = new Promise<T>((_, reject) => {
-      timeoutId = setTimeout(() => {
-        reject(new Error(`${label} timed out after ${ms}ms`));
-      }, ms);
+    let id: any;
+    const t = new Promise<T>((_, reject) => {
+      id = setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
     });
-
-    return Promise.race([promise, timeout]).finally(() =>
-      clearTimeout(timeoutId)
-    );
+    return Promise.race([promise, t]).finally(() => clearTimeout(id));
   }
 
   async function handleExistingSession() {
     if (!supabase) return;
-
     try {
       setStatus("loading");
-
-      const {
-        data: { session },
-      } = await withTimeout(supabase.auth.getSession(), 15000, "Session check");
-
+      const { data: { session } } = await withTimeout(supabase.auth.getSession(), 15000, "Session check");
       const user = session?.user;
-      if (!user) {
-        setStatus("idle");
-        return;
-      }
-
+      if (!user) { setStatus("idle"); return; }
       await resolveAndRedirect(user.id);
     } catch {
-      // If anything goes sideways, don’t brick auth. Drop them into athlete.
       router.replace("/athlete");
     }
   }
 
   async function resolveAndRedirect(userId: string) {
     if (!supabase) return;
-
-    // Precedence (LOCKED): Admin > NPO > PMP > Athlete
-    // If reads fail due to RLS/network, default to athlete.
     try {
-      // 1) Admin
-      const { data: adminRow, error: adminErr } = await supabase
-        .from("admin_users")
-        .select("user_id")
-        .eq("user_id", userId)
-        .maybeSingle();
+      const { data: adminRow, error: adminErr } = await supabase.from("admin_users").select("user_id").eq("user_id", userId).maybeSingle();
+      if (!adminErr && adminRow?.user_id) { router.replace("/admin"); return; }
 
-      if (!adminErr && adminRow?.user_id) {
-        router.replace("/admin");
-        return;
-      }
-
-      // 2) NPO membership → org-specific hub (/npo/[slug])
-      const { data: npoMembership, error: npoErr } = await supabase
-        .from("nonprofit_memberships")
-        .select("nonprofit_id")
-        .eq("user_id", userId)
-        .limit(1)
-        .maybeSingle();
-
+      const { data: npoMembership, error: npoErr } = await supabase.from("nonprofit_memberships").select("nonprofit_id").eq("user_id", userId).limit(1).maybeSingle();
       if (!npoErr && npoMembership?.nonprofit_id) {
-        const { data: nonprofit, error: nonprofitErr } = await supabase
-          .from("nonprofits")
-          .select("slug")
-          .eq("id", npoMembership.nonprofit_id)
-          .maybeSingle();
-
-        if (!nonprofitErr && nonprofit?.slug) {
-          router.replace(`/npo/${nonprofit.slug}`);
-          return;
-        }
-
-        // If we can’t resolve slug, still send them to the NPO hub (safe fallback)
-        router.replace("/npo");
-        return;
+        const { data: nonprofit } = await supabase.from("nonprofits").select("slug").eq("id", npoMembership.nonprofit_id).maybeSingle();
+        if (nonprofit?.slug) { router.replace(`/npo/${nonprofit.slug}`); return; }
+        router.replace("/npo"); return;
       }
 
-      // 3) PMP membership
-      const { data: pmpMembership, error: pmpErr } = await supabase
-        .from("pmp_memberships")
-        .select("pmp_id")
-        .eq("user_id", userId)
-        .limit(1)
-        .maybeSingle();
+      const { data: pmpMembership, error: pmpErr } = await supabase.from("pmp_memberships").select("pmp_id").eq("user_id", userId).limit(1).maybeSingle();
+      if (!pmpErr && pmpMembership?.pmp_id) { router.replace("/pmp"); return; }
 
-      if (!pmpErr && pmpMembership?.pmp_id) {
-        router.replace("/pmp");
-        return;
-      }
-
-      // 4) Default
       router.replace("/athlete");
     } catch {
       router.replace("/athlete");
@@ -135,48 +72,22 @@ export default function AuthorizationPage() {
 
   async function handleSubmit() {
     if (!supabase) return;
-
     setError(null);
     setStatus("loading");
 
     try {
       if (mode === "signup") {
         const { error } = await withTimeout(
-          supabase.auth.signUp({
-            email,
-            password,
-            options: {
-  emailRedirectTo: `${window.location.origin}/onboarding`,
-},
-          }),
-          15000,
-          "Signup request"
+          supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}/onboarding` } }),
+          15000, "Signup"
         );
-
-        if (error) {
-          setError(error.message);
-          setStatus("idle");
-          return;
-        }
-
+        if (error) { setError(error.message); setStatus("idle"); return; }
         setStatus("check_email");
         return;
       }
 
-      // LOGIN
-      const { data, error } = await withTimeout(
-        supabase.auth.signInWithPassword({ email, password }),
-        15000,
-        "Login request"
-      );
-
-      if (error || !data?.user?.id) {
-        setError(error?.message || "Login failed.");
-        setStatus("idle");
-        return;
-      }
-
-      // Post-login: role resolve → correct landing
+      const { data, error } = await withTimeout(supabase.auth.signInWithPassword({ email, password }), 15000, "Login");
+      if (error || !data?.user?.id) { setError(error?.message || "Login failed."); setStatus("idle"); return; }
       await resolveAndRedirect(data.user.id);
     } catch (e: any) {
       setError(e?.message || "Auth failed unexpectedly.");
@@ -184,74 +95,119 @@ export default function AuthorizationPage() {
     }
   }
 
-  // ✅ hard safety net (prevents browser-client crash before mount)
+  async function handleResend() {
+    if (!supabase || !email) return;
+    await supabase.auth.resend({ email, type: "signup" });
+    setResent(true);
+  }
+
   if (!supabase) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-[#0b0f1c] text-white px-4">
-        Loading…
+      <main className="min-h-screen flex items-center justify-center bg-[#070A12] text-white">
+        <div className="h-1 w-24 rounded-full bg-white/10 animate-pulse" />
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#0b0f1c] text-white px-4">
-      <div className="w-full max-w-md rounded-2xl bg-white/5 border border-white/10 p-6 space-y-6">
-        <h1 className="text-2xl font-semibold text-center">
-          {mode === "login" ? "Welcome back" : "Create your account"}
-        </h1>
+    <main className="min-h-screen bg-[#070A12] text-white flex items-center justify-center px-4 overflow-hidden">
+      <div className="pointer-events-none fixed inset-0 opacity-50">
+        <div className="absolute -top-40 left-1/2 h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(88,140,255,0.14),transparent_65%)] blur-3xl" />
+        <div className="absolute bottom-[-300px] right-[-100px] h-[600px] w-[600px] rounded-full bg-[radial-gradient(circle_at_center,rgba(255,210,143,0.10),transparent_65%)] blur-3xl" />
+      </div>
 
-        {error && (
-          <div className="rounded-lg bg-red-500/10 border border-red-500/30 p-3 text-sm text-red-300">
-            {error}
+      <div className="relative w-full max-w-sm">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <img src="/tsm-logo.jpeg" alt="The Shared Mile" className="h-10 w-auto rounded mx-auto mb-3" />
+          <div className="text-[10px] font-bold tracking-[0.22em] text-white/30 uppercase">
+            {status === "check_email" ? "Confirm your email" : mode === "login" ? "Welcome back" : "Create your account"}
           </div>
-        )}
+        </div>
 
-        {status === "check_email" ? (
-          <p className="text-sm text-center text-white/70">
-            Check your email to confirm your account, then return here to log in.
-          </p>
-        ) : (
-          <>
-            <div className="space-y-3">
-              <input
-                type="email"
-                placeholder="Email"
-                className="w-full rounded-lg bg-black/40 border border-white/10 px-4 py-3 outline-none"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-
-              <input
-                type="password"
-                placeholder="Password"
-                className="w-full rounded-lg bg-black/40 border border-white/10 px-4 py-3 outline-none"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+        <div className="rounded-3xl bg-white/5 ring-1 ring-white/10 backdrop-blur-xl p-7 space-y-5">
+          {status === "check_email" ? (
+            <div className="text-center space-y-4">
+              {/* envelope SVG */}
+              <div className="flex justify-center">
+                <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="6" y="14" width="40" height="28" rx="4" stroke="#FFD28F" strokeWidth="1.5" fill="none" />
+                  <path d="M6 18l20 13 20-13" stroke="#FFD28F" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold">Check your inbox.</h2>
+                <p className="mt-2 text-sm text-white/55 leading-relaxed">
+                  We sent a confirmation link to<br />
+                  <span className="text-white font-medium">{email}</span>
+                </p>
+                <p className="mt-2 text-xs text-white/35">
+                  Click the link in the email to activate your account, then come back to log in.
+                </p>
+              </div>
+              <div className="space-y-2 pt-2">
+                {!resent ? (
+                  <button
+                    onClick={handleResend}
+                    className="w-full rounded-full bg-white/8 py-2.5 text-sm text-white/70 ring-1 ring-white/10 hover:ring-white/20 hover:text-white transition"
+                  >
+                    Resend confirmation email
+                  </button>
+                ) : (
+                  <p className="text-xs text-[#C4EBF2] text-center">Email resent.</p>
+                )}
+                <button
+                  onClick={() => { setStatus("idle"); setMode("login"); }}
+                  className="w-full text-xs text-white/35 hover:text-white/60 py-2 transition"
+                >
+                  Back to Login
+                </button>
+              </div>
             </div>
+          ) : (
+            <>
+              {error && (
+                <div className="rounded-xl bg-red-500/10 ring-1 ring-red-500/25 px-4 py-3 text-sm text-red-200">
+                  {error}
+                </div>
+              )}
 
-            <button
-              onClick={handleSubmit}
-              disabled={status === "loading"}
-              className="w-full rounded-full bg-[#FFCC88] text-black font-medium py-3 hover:bg-[#FEC56B] transition"
-            >
-              {status === "loading"
-                ? "Please wait…"
-                : mode === "login"
-                ? "Login"
-                : "Create account"}
-            </button>
+              <div className="space-y-3">
+                <input
+                  type="email"
+                  placeholder="Email address"
+                  className="w-full rounded-xl bg-black/30 ring-1 ring-white/10 focus:ring-white/30 px-4 py-3 text-sm outline-none placeholder:text-white/30 transition"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+                />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  className="w-full rounded-xl bg-black/30 ring-1 ring-white/10 focus:ring-white/30 px-4 py-3 text-sm outline-none placeholder:text-white/30 transition"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+                />
+              </div>
 
-            <button
-              onClick={() => setMode(mode === "login" ? "signup" : "login")}
-              className="text-sm underline text-center w-full text-white/70"
-            >
-              {mode === "login"
-                ? "Create an account"
-                : "Already have an account? Login"}
-            </button>
-          </>
-        )}
+              <button
+                onClick={handleSubmit}
+                disabled={status === "loading"}
+                className="w-full rounded-full bg-[#FF9B6A] py-3.5 text-sm font-bold text-[#0B0F1C] shadow-[0_8px_24px_rgba(255,155,106,0.20)] hover:bg-[#FFB48E] hover:shadow-[0_10px_36px_rgba(255,155,106,0.35)] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {status === "loading" ? "Please wait…" : mode === "login" ? "Log In" : "Create Account"}
+              </button>
+
+              <button
+                onClick={() => { setMode(mode === "login" ? "signup" : "login"); setError(null); }}
+                className="w-full text-xs text-white/40 hover:text-[#FFD28F] py-1 transition"
+              >
+                {mode === "login" ? "Don't have an account? Sign up" : "Already have an account? Log in"}
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </main>
   );
