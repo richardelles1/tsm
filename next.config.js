@@ -3,6 +3,7 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  allowedDevOrigins: ['*'],
   webpack: (config, { isServer }) => {
     if (isServer) {
       // ⛔ Exclude the entire 'pdf-parse' package from the server build
