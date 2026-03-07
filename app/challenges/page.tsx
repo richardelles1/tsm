@@ -296,19 +296,20 @@ export default function ChallengesPage() {
                     {/* Activity color accent strip */}
                     <div className="h-0.5 w-full" style={{ background: act.accent }} />
 
-                    {hasMatch && (
-                      <div className="absolute top-1 right-0 rounded-bl-2xl rounded-tr-3xl bg-gradient-to-br from-[#FFD28F]/20 to-[#FFD28F]/5 px-3 py-1 text-[9px] font-black tracking-[0.15em] text-[#FFD28F] ring-1 ring-[#FFD28F]/25">
-                        MATCHED
-                      </div>
-                    )}
-
                     <div className="p-5 sm:p-6 flex flex-col gap-4">
-                      {/* Activity + slots */}
-                      <div className="flex items-center justify-between">
-                        <span className={`text-[10px] font-black tracking-[0.20em] uppercase ${act.color}`}>
+                      {/* Activity + slots + matched badge — all in one row, no overlap */}
+                      <div className="flex items-center justify-between gap-2">
+                        <span className={`text-[10px] font-black tracking-[0.20em] uppercase shrink-0 ${act.color}`}>
                           {act.label}
                         </span>
-                        <SlotBadge left={slotsLeft} total={slotsTotal} />
+                        <div className="flex items-center gap-2 min-w-0">
+                          {hasMatch && (
+                            <span className="shrink-0 rounded-full bg-gradient-to-br from-[#FFD28F]/20 to-[#FFD28F]/5 px-2.5 py-0.5 text-[9px] font-black tracking-[0.15em] text-[#FFD28F] ring-1 ring-[#FFD28F]/25">
+                              MATCHED
+                            </span>
+                          )}
+                          <SlotBadge left={slotsLeft} total={slotsTotal} />
+                        </div>
                       </div>
 
                       {/* Title */}

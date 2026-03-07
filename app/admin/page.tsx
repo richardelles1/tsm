@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import AdminCommandCenter from "@/components/AdminCommandCenter";
+import AdminHub from "@/components/AdminHub";
+
+export const dynamic = "force-dynamic";
 
 function money(cents?: number | null) {
   const v = typeof cents === "number" ? cents : 0;
@@ -25,6 +27,7 @@ export default async function AdminHomePage() {
     { data: recentChallenges },
     { data: alertPools },
     { data: agingPayables },
+    { count: activeChallengesCount },
   ] = await Promise.all([
     admin.from("funding_pools").select("source_type, remaining_amount_cents, total_amount_cents, is_active"),
     admin.from("payables").select("total_cents, status").neq("status", "paid"),
@@ -42,6 +45,7 @@ export default async function AdminHomePage() {
     `).order("created_at", { ascending: false }).limit(5),
     admin.from("funding_pools").select("id, source_name, source_type, remaining_amount_cents, total_amount_cents, is_active").eq("is_active", true),
     admin.from("payables").select("id, total_cents, status, created_at, nonprofits ( name )").neq("status", "paid"),
+    admin.from("challenges").select("id", { count: "exact", head: true }).eq("status", "open"),
   ]);
 
   const activePools = (pools ?? []).filter((p: any) => p?.is_active !== false);
@@ -61,15 +65,6 @@ export default async function AdminHomePage() {
     (sum: number, p: any) => sum + (Number(p?.total_cents ?? 0) || 0),
     0
   );
-
-  let activeChallengesCount: number | null = null;
-  const tryIsActive = await admin.from("challenges").select("id", { count: "exact", head: true }).eq("is_active", true);
-  if (!tryIsActive.error) {
-    activeChallengesCount = tryIsActive.count ?? 0;
-  } else {
-    const tryStatus = await admin.from("challenges").select("id", { count: "exact", head: true }).in("status", ["active", "open"]);
-    if (!tryStatus.error) activeChallengesCount = tryStatus.count ?? 0;
-  }
 
   const SEVEN_DAYS_AGO = Date.now() - 7 * 24 * 60 * 60 * 1000;
 
@@ -113,135 +108,104 @@ export default async function AdminHomePage() {
         <div className="absolute bottom-[-260px] left-[-200px] h-[620px] w-[620px] rounded-full bg-[radial-gradient(circle_at_center,rgba(255,210,143,0.14),transparent_60%)] blur-2xl" />
       </div>
 
-      <div className="relative mx-auto max-w-6xl px-6 py-14">
-        <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+      <div className="relative mx-auto max-w-6xl px-4 sm:px-6 py-10 sm:py-14">
+        {/* Header */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <div className="text-sm text-white/60">Admin</div>
-            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
-              Command Center
-            </h1>
-            <p className="mt-2 text-sm text-white/65 max-w-2xl">
-              System health, money visibility, and fast access to every governance surface.
+            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">Command Center</h1>
+            <p className="mt-1.5 text-sm text-white/55 max-w-xl">
+              Live ops view — verify, monitor, act.
             </p>
           </div>
-
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href="/athlete"
-              className="rounded-full bg-[#0D1326] px-4 py-2 text-sm ring-1 ring-white/10 hover:ring-white/20 transition"
-            >
-              ← Athlete
-            </Link>
-            <Link
-              href="/admin/releases"
-              className="rounded-full bg-[#0D1326] px-4 py-2 text-sm ring-1 ring-[#FFD28F]/20 hover:ring-[#FFD28F]/35 hover:shadow-[0_0_22px_4px_rgba(255,210,143,0.14)] transition"
-            >
-              Releases Ledger →
-            </Link>
-          </div>
+          <Link
+            href="/athlete"
+            className="self-start rounded-full bg-[#0D1326] px-4 py-2 text-sm ring-1 ring-white/10 hover:ring-white/20 transition"
+          >
+            ← Athlete
+          </Link>
         </div>
 
         {(poolsErr || payErr || relAllErr || rel7dErr) ? (
-          <div className="mt-8 rounded-3xl bg-red-500/10 ring-1 ring-red-500/30 p-5 text-sm text-red-100">
-            <div className="font-medium">Heads up: some metrics failed to load.</div>
-            <div className="mt-1 text-red-100/80">
-              {poolsErr?.message || payErr?.message || relAllErr?.message || rel7dErr?.message}
-            </div>
+          <div className="mt-6 rounded-3xl bg-red-500/10 ring-1 ring-red-500/30 p-4 text-sm text-red-100">
+            {poolsErr?.message || payErr?.message || relAllErr?.message || rel7dErr?.message}
           </div>
         ) : null}
 
-        {/* KPI Cards */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="rounded-[28px] bg-white/5 ring-1 ring-white/10 backdrop-blur-xl p-6 shadow-[0_0_34px_10px_rgba(0,0,0,0.30)]">
-            <div className="text-xs text-white/55">Total Remaining (All Pools)</div>
-            <div className="mt-2 text-3xl font-semibold text-[#FFD28F]">
-              {money(totalRemaining)}
-            </div>
-            <div className="mt-2 text-xs text-white/55">
-              Donor: {money(donorRemaining)} · Partner: {money(partnerRemaining)}
-            </div>
+        {/* KPI Cards — 2-col on mobile, 4-col on md+ */}
+        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="rounded-[24px] bg-white/5 ring-1 ring-white/10 backdrop-blur-xl p-5">
+            <div className="text-[11px] text-white/50">Total Remaining</div>
+            <div className="mt-1.5 text-2xl font-semibold text-[#FFD28F]">{money(totalRemaining)}</div>
+            <div className="mt-1 text-[10px] text-white/40">D: {money(donorRemaining)} · P: {money(partnerRemaining)}</div>
           </div>
-
-          <div className="rounded-[28px] bg-white/5 ring-1 ring-white/10 backdrop-blur-xl p-6 shadow-[0_0_34px_10px_rgba(0,0,0,0.30)]">
-            <div className="text-xs text-white/55">Unpaid Payables</div>
-            <div className="mt-2 text-3xl font-semibold">{money(unpaidTotal)}</div>
-            <div className="mt-2 text-xs text-white/55">{fmtInt(unpaidCount)} rows</div>
+          <div className="rounded-[24px] bg-white/5 ring-1 ring-white/10 backdrop-blur-xl p-5">
+            <div className="text-[11px] text-white/50">Unpaid Payables</div>
+            <div className="mt-1.5 text-2xl font-semibold">{money(unpaidTotal)}</div>
+            <div className="mt-1 text-[10px] text-white/40">{fmtInt(unpaidCount)} rows</div>
           </div>
-
-          <div className="rounded-[28px] bg-white/5 ring-1 ring-white/10 backdrop-blur-xl p-6 shadow-[0_0_34px_10px_rgba(0,0,0,0.30)]">
-            <div className="text-xs text-white/55">Releases (Last 7 Days)</div>
-            <div className="mt-2 text-3xl font-semibold">{fmtInt(releases7dCount ?? 0)}</div>
-            <div className="mt-2 text-xs text-white/55">
-              Lifetime: {fmtInt(releasesAllCount ?? 0)}
-            </div>
+          <div className="rounded-[24px] bg-white/5 ring-1 ring-white/10 backdrop-blur-xl p-5">
+            <div className="text-[11px] text-white/50">Releases · 7d</div>
+            <div className="mt-1.5 text-2xl font-semibold">{fmtInt(releases7dCount ?? 0)}</div>
+            <div className="mt-1 text-[10px] text-white/40">Lifetime: {fmtInt(releasesAllCount ?? 0)}</div>
           </div>
-
-          <div className="rounded-[28px] bg-white/5 ring-1 ring-white/10 backdrop-blur-xl p-6 shadow-[0_0_34px_10px_rgba(0,0,0,0.30)]">
-            <div className="text-xs text-white/55">Active Challenges</div>
-            <div className="mt-2 text-3xl font-semibold">
-              {activeChallengesCount === null ? "—" : fmtInt(activeChallengesCount)}
-            </div>
-            <div className="mt-2 text-xs text-white/55">open slots in market</div>
+          <div className="rounded-[24px] bg-white/5 ring-1 ring-white/10 backdrop-blur-xl p-5">
+            <div className="text-[11px] text-white/50">Open Challenges</div>
+            <div className="mt-1.5 text-2xl font-semibold">{fmtInt(activeChallengesCount ?? 0)}</div>
+            <div className="mt-1 text-[10px] text-white/40">status = open</div>
           </div>
         </div>
 
-        {/* Command Center — togglable inline sections */}
-        <AdminCommandCenter
+        {/* Alert pills — only shown when there are active alerts */}
+        {alerts.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {alerts.map((a) => (
+              <Link
+                key={a.key}
+                href={a.href ?? "/admin/alerts"}
+                className={[
+                  "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium ring-1 transition",
+                  a.severity === "bad"
+                    ? "bg-red-500/15 text-red-200 ring-red-500/30 hover:bg-red-500/25"
+                    : "bg-[#FFD28F]/10 text-[#FFD28F] ring-[#FFD28F]/25 hover:bg-[#FFD28F]/20",
+                ].join(" ")}
+              >
+                <span className={[
+                  "h-1.5 w-1.5 rounded-full shrink-0",
+                  a.severity === "bad" ? "bg-red-400" : "bg-[#FFD28F]",
+                ].join(" ")} />
+                {a.title}
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {/* Admin Hub — scrollable stacked sections */}
+        <AdminHub
           verifications={(pendingVerifications ?? []) as any}
-          alerts={alerts}
           challenges={(recentChallenges ?? []) as any}
+          payables={(agingPayables ?? []) as any}
+          pools={(alertPools ?? []) as any}
         />
 
-        {/* Quick Links */}
-        <div className="mt-6 rounded-[28px] bg-white/5 ring-1 ring-white/10 backdrop-blur-xl shadow-[0_0_34px_10px_rgba(0,0,0,0.30)] overflow-hidden">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
-            <div className="text-sm text-white/70">Admin Surfaces</div>
-            <div className="text-xs text-white/50">
-              Tip: "Releases" = truth. "Payables" = what we owe.
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-6">
-            <AdminLink href="/admin/donorfunds" title="Donor Funds" desc="Donor pools + balances." />
-            <AdminLink href="/admin/partnerfunds" title="Partner Funds" desc="Match pool inventory + utilization." />
-            <AdminLink href="/admin/fundingpools" title="Funding Pools" desc="All pools, unified view." />
-
-            <AdminLink href="/admin/challenges/newchallenge" title="New Challenge" desc="Create + seed challenge inventory." />
-            <AdminLink href="/admin/challenges" title="Challenges" desc="Active / exhausted challenges." />
-            <AdminLink href="/admin/releases" title="Releases" desc="Immutable ledger of unlocked funds." />
-
-            <AdminLink href="/admin/payables" title="Payables" desc="Who we owe + drilldown rows." />
-            <AdminLink href="/admin/nonprofits" title="Nonprofits" desc="Recipients + totals + payout status." />
-            <AdminLink href="/admin/alerts" title="Alerts" desc="Low pools, aging payables, exhausted match." />
-            <AdminLink href="/admin/verifications" title="Verifications" desc="Pending verification requests." />
-
-            <AdminLink href="/admin/settings" title="Settings" desc="Admin-only rules + thresholds." />
-          </div>
-
-          <div className="px-6 pb-6 text-[11px] text-white/45">
-            Read-only surfaces. Anything that changes money should happen through the release engine / payout engine —
-            not from clicks in the UI.
-          </div>
+        {/* Footer tool links */}
+        <div className="mt-6 flex flex-wrap gap-3 text-xs text-white/40">
+          <span className="text-white/20">More tools:</span>
+          {[
+            { href: "/admin/releases", label: "Releases Ledger" },
+            { href: "/admin/nonprofits", label: "Nonprofits" },
+            { href: "/admin/fundingpools", label: "Funding Pools" },
+            { href: "/admin/donorfunds", label: "Donor Funds" },
+            { href: "/admin/partnerfunds", label: "Partner Funds" },
+            { href: "/admin/alerts", label: "All Alerts" },
+            { href: "/admin/settings", label: "Settings" },
+          ].map((l) => (
+            <Link key={l.href} href={l.href} className="hover:text-white/70 transition underline underline-offset-2">
+              {l.label}
+            </Link>
+          ))}
         </div>
       </div>
     </main>
-  );
-}
-
-function AdminLink(props: { href: string; title: string; desc: string }) {
-  return (
-    <Link
-      href={props.href}
-      className={[
-        "group rounded-2xl bg-black/20 ring-1 ring-white/10 p-4 transition",
-        "hover:bg-white/5 hover:ring-[#FFD28F]/20 hover:shadow-[0_0_22px_4px_rgba(255,210,143,0.10)]",
-      ].join(" ")}
-    >
-      <div className="flex items-center justify-between gap-3">
-        <div className="font-medium">{props.title}</div>
-        <span className="text-white/35 group-hover:text-white/60">→</span>
-      </div>
-      <div className="mt-1 text-xs text-white/55">{props.desc}</div>
-    </Link>
   );
 }

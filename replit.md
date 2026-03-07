@@ -141,9 +141,10 @@ Also: `rejected`, `expired`, `cancelled`
 - **Active challenge page** (`/activechallenge`): joins `challenges(title, description)`, shows challenge title prominently, Gold stats, two-step confirm-release, Coral Ember verify CTA, helpful empty state when no active claim
 - **Claim page** (`/claim/[id]`): double-claim guard — blocks with clear UI if athlete already has an active claim, brand kit styling, activity accent strip
 - **Donation page** (`/give`): `DonationForm.tsx` client component with tip selector (5/10/15/20/None), processing fee toggle, real-time breakdown, brand kit
-- **Admin Command Center** (`/admin`): three togglable inline tabs — Verifications (approve/reject inline), Alerts (low pool + aging payable badges), Challenges (recent 5 + New Challenge button)
+- **Admin Command Center** (`/admin`): redesigned as scrollable single-page hub (AdminHub.tsx). Four collapsible sections: Verifications (approve/reject inline, green flash animation), Unpaid Payables (rows + Batch Mark Paid CTA), Challenges (recent 5 + New button), Pool Health (progress bars). Alert pills appear above hub when active. `force-dynamic` ensures fresh verifications on every load. Active challenges count fixed to query `status = "open"` directly.
 - **Admin New Challenge**: Activity field is now a `<select>` dropdown (run/walk/cycle) — no free-text possible
 - **PMP Entry** (`/admin/pmpentry`): fixed localhost:5000 bug — now writes directly to Supabase (top-up or create modes)
+- **Challenge card MATCHED badge**: moved into the activity+slots flex row (inline, not absolute positioned) — no overlap with slot count text on any screen size
 - **Admin brand kit** — all admin pages on dark theme: donorfunds, partnerfunds, pmpentry, alerts, fundingpools, nonprofits, challenges, releases, settings — KPI cards, glass tables, Gold/Aqua money values
 - **PWA manifest** (`/public/manifest.json`): name, icons, theme color, standalone display
 - **Email templates** (`docs/supabase-email-templates.md`): confirm signup + magic link, copy-pasteable HTML, TSM-branded
