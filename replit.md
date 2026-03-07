@@ -130,7 +130,7 @@ Also: `rejected`, `expired`, `cancelled`
 - Payable auto-creation (DB trigger on release insert)
 - Admin home KPI dashboard
 - Admin payables: batch "Mark as Paid" with provider + reference (server action)
-- Live challenge board: Supabase Realtime slot updates, AnimatePresence exit animations, Nike Run UX, live claim ticker
+- Live challenge board: Supabase Realtime slot updates, AnimatePresence exit animations, activity-color accent strip on cards, full nonprofit/partner name display (no truncation), Nike Run UX, live claim ticker
 - Challenge complete page: confetti burst (dynamic import, no webpack error), social share card
 - Social share card: OG image API at `/api/og/share` (next/og, Edge runtime, IG story 1080×1920)
 - Athlete impact dashboard: lifetime stats hero, history rows with nonprofit name + date, active claim links to `/activechallenge`
@@ -138,8 +138,12 @@ Also: `rejected`, `expired`, `cancelled`
 - **Homepage** (`app/page.tsx`): 4-section landing (hero + How It Works + Capital Chain + footer), Coral Ember CTAs, runner background
 - **Auth page** (`/authorization`): brand kit glass card, TSM logo, Coral Ember button, `check_email` state with envelope SVG + resend button
 - **Onboarding** (`/onboarding`): brand kit glass card, labeled inputs, TSM logo, Coral Ember CTA
-- **Active challenge page** (`/activechallenge`): joins `challenges(title, description)`, shows challenge title prominently, Gold stats, two-step confirm-release, Coral Ember verify CTA
+- **Active challenge page** (`/activechallenge`): joins `challenges(title, description)`, shows challenge title prominently, Gold stats, two-step confirm-release, Coral Ember verify CTA, helpful empty state when no active claim
+- **Claim page** (`/claim/[id]`): double-claim guard — blocks with clear UI if athlete already has an active claim, brand kit styling, activity accent strip
 - **Donation page** (`/give`): `DonationForm.tsx` client component with tip selector (5/10/15/20/None), processing fee toggle, real-time breakdown, brand kit
+- **Admin Command Center** (`/admin`): three togglable inline tabs — Verifications (approve/reject inline), Alerts (low pool + aging payable badges), Challenges (recent 5 + New Challenge button)
+- **Admin New Challenge**: Activity field is now a `<select>` dropdown (run/walk/cycle) — no free-text possible
+- **PMP Entry** (`/admin/pmpentry`): fixed localhost:5000 bug — now writes directly to Supabase (top-up or create modes)
 - **Admin brand kit** — all admin pages on dark theme: donorfunds, partnerfunds, pmpentry, alerts, fundingpools, nonprofits, challenges, releases, settings — KPI cards, glass tables, Gold/Aqua money values
 - **PWA manifest** (`/public/manifest.json`): name, icons, theme color, standalone display
 - **Email templates** (`docs/supabase-email-templates.md`): confirm signup + magic link, copy-pasteable HTML, TSM-branded

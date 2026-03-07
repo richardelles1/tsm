@@ -27,6 +27,8 @@ function money(cents: number | null | undefined) {
 async function pmpEntryAction(formData: FormData) {
   "use server";
 
+  const supabase = createSupabaseServerClient();
+
   const mode = toStr(formData.get("mode")) || "topup";
   const corporate_partner_pmp_id = toStr(formData.get("corporate_partner_pmp_id"));
   const pool_id = toStr(formData.get("pool_id")) || null;
@@ -40,17 +42,45 @@ async function pmpEntryAction(formData: FormData) {
 
   if (!corporate_partner_pmp_id) throw new Error("Corporate partner is required.");
   if (amount_cents === null || amount_cents <= 0) throw new Error("Amount (USD) must be > 0.");
-  if (mode === "topup" && !pool_id) throw new Error("Select a pool to top up.");
 
-  const res = await fetch("http://localhost:5000/api/pmp-entry", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    cache: "no-store",
-    body: JSON.stringify({ mode, corporate_partner_pmp_id, pool_id, amount_cents, source_name, pool_type, currency, is_active, starts_at, ends_at }),
-  });
+  if (mode === "topup") {
+    if (!pool_id) throw new Error("Select a pool to top up.");
 
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(typeof json?.error === "string" ? json.error : "PMP entry failed.");
+    const { data: existing, error: fetchErr } = await supabase
+      .from("funding_pools")
+      .select("total_amount_cents, remaining_amount_cents")
+      .eq("id", pool_id)
+      .single();
+
+    if (fetchErr || !existing) throw new Error(fetchErr?.message ?? "Pool not found.");
+
+    const newTotal = (existing.total_amount_cents ?? 0) + amount_cents;
+    const newRemaining = (existing.remaining_amount_cents ?? 0) + amount_cents;
+
+    const { error: updateErr } = await supabase
+      .from("funding_pools")
+      .update({ total_amount_cents: newTotal, remaining_amount_cents: newRemaining })
+      .eq("id", pool_id);
+
+    if (updateErr) throw new Error(updateErr.message);
+  } else {
+    const { error: insertErr } = await supabase
+      .from("funding_pools")
+      .insert({
+        source_type: "corporate_partner",
+        corporate_partner_pmp_id,
+        source_name,
+        pool_type,
+        currency,
+        is_active,
+        starts_at: starts_at || null,
+        ends_at: ends_at || null,
+        total_amount_cents: amount_cents,
+        remaining_amount_cents: amount_cents,
+      });
+
+    if (insertErr) throw new Error(insertErr.message);
+  }
 
   redirect("/admin/partnerfunds");
 }

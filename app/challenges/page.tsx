@@ -29,14 +29,14 @@ type TickerItem = {
   challengeTitle: string;
 };
 
-const ACTIVITY_CONFIG: Record<string, { label: string; color: string; glow: string }> = {
-  run:   { label: "RUN",   color: "text-[#FF9B6A]", glow: "rgba(255,155,106,0.20)" },
-  walk:  { label: "WALK",  color: "text-[#C4EBF2]", glow: "rgba(196,235,242,0.15)" },
-  cycle: { label: "CYCLE", color: "text-[#FFD28F]", glow: "rgba(255,210,143,0.20)" },
+const ACTIVITY_CONFIG: Record<string, { label: string; color: string; glow: string; accent: string }> = {
+  run:   { label: "RUN",   color: "text-[#FF9B6A]", glow: "rgba(255,155,106,0.20)", accent: "#FF9B6A" },
+  walk:  { label: "WALK",  color: "text-[#C4EBF2]", glow: "rgba(196,235,242,0.15)", accent: "#C4EBF2" },
+  cycle: { label: "CYCLE", color: "text-[#FFD28F]", glow: "rgba(255,210,143,0.20)", accent: "#FFD28F" },
 };
 
 function getActivity(a: string | null | undefined) {
-  return ACTIVITY_CONFIG[(a ?? "").toLowerCase()] ?? { label: (a ?? "MOVE").toUpperCase(), color: "text-white/70", glow: "rgba(255,255,255,0.10)" };
+  return ACTIVITY_CONFIG[(a ?? "").toLowerCase()] ?? { label: (a ?? "MOVE").toUpperCase(), color: "text-white/70", glow: "rgba(255,255,255,0.10)", accent: "rgba(255,255,255,0.4)" };
 }
 
 function money(cents?: number | null) {
@@ -285,10 +285,13 @@ export default function ChallengesPage() {
                     exit={{ opacity: 0, scale: 0.96 }}
                     transition={{ duration: 0.35, delay: Math.min(i * 0.06, 0.3) }}
                     className="relative rounded-3xl bg-white/5 ring-1 ring-white/10 backdrop-blur-xl overflow-hidden"
-                    whileHover={{ boxShadow: `0 8px 40px 0 ${act.glow}`, borderColor: "rgba(255,255,255,0.18)" }}
+                    whileHover={{ boxShadow: `0 8px 40px 0 ${act.glow}`, scale: 1.005 }}
                   >
+                    {/* Activity color accent strip */}
+                    <div className="h-0.5 w-full" style={{ background: act.accent }} />
+
                     {hasMatch && (
-                      <div className="absolute top-0 right-0 rounded-bl-2xl rounded-tr-3xl bg-[#FFD28F]/10 px-3 py-1 text-[9px] font-black tracking-[0.15em] text-[#FFD28F] ring-1 ring-[#FFD28F]/20">
+                      <div className="absolute top-1 right-0 rounded-bl-2xl rounded-tr-3xl bg-gradient-to-br from-[#FFD28F]/20 to-[#FFD28F]/5 px-3 py-1 text-[9px] font-black tracking-[0.15em] text-[#FFD28F] ring-1 ring-[#FFD28F]/25">
                         MATCHED
                       </div>
                     )}
@@ -314,7 +317,7 @@ export default function ChallengesPage() {
 
                       {/* Distance commitment */}
                       {dist && (
-                        <div className="flex items-baseline gap-1.5">
+                        <div className="flex items-baseline gap-2">
                           <span className="text-5xl font-black tracking-tighter text-white leading-none">
                             {dist}
                           </span>
@@ -322,40 +325,46 @@ export default function ChallengesPage() {
                         </div>
                       )}
 
-                      {/* Money + nonprofit */}
-                      <div className="flex items-end justify-between gap-3">
-                        <div>
-                          <div className="text-[#FFD28F] text-2xl font-semibold leading-none">
-                            {base}
-                          </div>
-                          {hasMatch && (
-                            <div className="mt-1 text-xs text-white/45">
-                              {impact} with match
-                            </div>
-                          )}
-                          <div className="mt-1 text-xs text-white/35">unlocked on approval</div>
+                      {/* Money block */}
+                      <div>
+                        <div className="text-[#FFD28F] text-3xl font-semibold leading-none">
+                          {base}
                         </div>
+                        {hasMatch && (
+                          <div className="mt-1 text-xs text-white/45">
+                            {impact} with match
+                          </div>
+                        )}
+                        <div className="mt-1 text-xs text-white/35">unlocked on approval</div>
+                      </div>
 
-                        <div className="flex items-center gap-2 text-right shrink-0">
+                      {/* Beneficiary row — full width, no truncation pressure */}
+                      {(c.nonprofit_name || c.corporate_partner_name) && (
+                        <div className="flex items-center gap-2 pt-1 border-t border-white/6">
                           {c.nonprofit_logo_url && (
                             <img
                               src={c.nonprofit_logo_url}
                               alt={c.nonprofit_name ?? ""}
-                              className="h-8 w-8 rounded-full object-cover ring-1 ring-white/20 shrink-0"
+                              className="h-6 w-6 rounded-full object-cover ring-1 ring-white/20 shrink-0"
                             />
                           )}
-                          <div className="max-w-[110px]">
-                            <div className="text-xs text-white/65 font-medium line-clamp-1">
-                              {c.nonprofit_name ?? ""}
-                            </div>
-                            {hasMatch && (
-                              <div className="text-[10px] text-white/30 line-clamp-1 mt-0.5">
-                                + {c.corporate_partner_name}
-                              </div>
+                          <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                            {c.nonprofit_name && (
+                              <span className="text-xs text-white/65 font-medium">
+                                {c.nonprofit_name}
+                              </span>
+                            )}
+                            {hasMatch && c.corporate_partner_name && (
+                              <>
+                                <span className="text-white/20 text-xs">·</span>
+                                <span className="text-[10px] text-white/35">
+                                  + {c.corporate_partner_name}
+                                </span>
+                              </>
                             )}
                           </div>
                         </div>
-                      </div>
+                      )}
 
                       {/* CTA */}
                       <button

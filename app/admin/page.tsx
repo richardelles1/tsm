@@ -1,9 +1,6 @@
-// OLD
-// (file does not exist)
-
-// NEW
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import AdminCommandCenter from "@/components/AdminCommandCenter";
 
 function money(cents?: number | null) {
   const v = typeof cents === "number" ? cents : 0;
@@ -19,12 +16,33 @@ function fmtInt(n?: number | null) {
 export default async function AdminHomePage() {
   const admin = createSupabaseServerClient();
 
-  // -----------------------------
-  // KPI: Pool remaining (donor + partner)
-  // -----------------------------
-  const { data: pools, error: poolsErr } = await admin
-    .from("funding_pools")
-    .select("source_type, remaining_amount_cents, total_amount_cents, is_active");
+  const [
+    { data: pools, error: poolsErr },
+    { data: unpaidPayables, error: payErr },
+    { count: releasesAllCount, error: relAllErr },
+    { count: releases7dCount, error: rel7dErr },
+    { data: pendingVerifications },
+    { data: recentChallenges },
+    { data: alertPools },
+    { data: agingPayables },
+  ] = await Promise.all([
+    admin.from("funding_pools").select("source_type, remaining_amount_cents, total_amount_cents, is_active"),
+    admin.from("payables").select("total_cents, status").neq("status", "paid"),
+    admin.from("releases").select("id", { count: "exact", head: true }),
+    admin.from("releases").select("id", { count: "exact", head: true })
+      .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()),
+    admin.from("claims").select(`
+      id, status, verification_photo_url, submitted_at, claimed_at,
+      distance_miles_snapshot, athlete_id,
+      challenges ( title, activity, amount_cents )
+    `).eq("status", "submitted").order("submitted_at", { ascending: true }),
+    admin.from("challenges").select(`
+      id, title, activity, status, slots_total, slots_claimed, created_at,
+      nonprofits ( name )
+    `).order("created_at", { ascending: false }).limit(5),
+    admin.from("funding_pools").select("id, source_name, source_type, remaining_amount_cents, total_amount_cents, is_active").eq("is_active", true),
+    admin.from("payables").select("id, total_cents, status, created_at, nonprofits ( name )").neq("status", "paid"),
+  ]);
 
   const activePools = (pools ?? []).filter((p: any) => p?.is_active !== false);
 
@@ -38,62 +56,58 @@ export default async function AdminHomePage() {
 
   const totalRemaining = donorRemaining + partnerRemaining;
 
-  // -----------------------------
-  // KPI: Unpaid payables (sum + count)
-  // -----------------------------
-  const { data: unpaidPayables, error: payErr } = await admin
-    .from("payables")
-    .select("total_cents, status")
-    .neq("status", "paid");
-
   const unpaidCount = (unpaidPayables ?? []).length;
   const unpaidTotal = (unpaidPayables ?? []).reduce(
     (sum: number, p: any) => sum + (Number(p?.total_cents ?? 0) || 0),
     0
   );
 
-  // -----------------------------
-  // KPI: Releases (7d + lifetime count)
-  // -----------------------------
-  const { count: releasesAllCount, error: relAllErr } = await admin
-    .from("releases")
-    .select("id", { count: "exact", head: true });
-
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-
-  const { count: releases7dCount, error: rel7dErr } = await admin
-    .from("releases")
-    .select("id", { count: "exact", head: true })
-    .gte("created_at", sevenDaysAgo);
-
-  // -----------------------------
-  // KPI: Active challenges count (best-effort, safe)
-  // -----------------------------
-  // Some schemas use status, some use is_active; we’ll try both without breaking the page.
   let activeChallengesCount: number | null = null;
-
-  const tryIsActive = await admin
-    .from("challenges")
-    .select("id", { count: "exact", head: true })
-    .eq("is_active", true);
-
+  const tryIsActive = await admin.from("challenges").select("id", { count: "exact", head: true }).eq("is_active", true);
   if (!tryIsActive.error) {
     activeChallengesCount = tryIsActive.count ?? 0;
   } else {
-    const tryStatus = await admin
-      .from("challenges")
-      .select("id", { count: "exact", head: true })
-      .in("status", ["active", "open"]);
-
+    const tryStatus = await admin.from("challenges").select("id", { count: "exact", head: true }).in("status", ["active", "open"]);
     if (!tryStatus.error) activeChallengesCount = tryStatus.count ?? 0;
   }
 
-  const anyError =
-    poolsErr || payErr || relAllErr || rel7dErr || (activeChallengesCount === null ? null : null);
+  const SEVEN_DAYS_AGO = Date.now() - 7 * 24 * 60 * 60 * 1000;
+
+  const alerts: Array<{ key: string; severity: "warn" | "bad"; title: string; detail: string; href?: string }> = [];
+
+  for (const pool of alertPools ?? []) {
+    const p = pool as any;
+    const total = Number(p.total_amount_cents ?? 0);
+    const remaining = Number(p.remaining_amount_cents ?? 0);
+    if (total > 0 && remaining / total < 0.15) {
+      const pct = Math.round((remaining / total) * 100);
+      alerts.push({
+        key: `pool-${p.id}`,
+        severity: pct < 5 ? "bad" : "warn",
+        title: `Low pool: ${p.source_name ?? p.id.slice(0, 8)}`,
+        detail: `${money(remaining)} remaining (${pct}% of ${money(total)})`,
+        href: "/admin/fundingpools",
+      });
+    }
+  }
+
+  for (const payable of agingPayables ?? []) {
+    const p = payable as any;
+    const created = new Date(p.created_at).getTime();
+    if (Date.now() - created > SEVEN_DAYS_AGO) {
+      const days = Math.floor((Date.now() - created) / (1000 * 60 * 60 * 24));
+      alerts.push({
+        key: `payable-${p.id}`,
+        severity: days > 14 ? "bad" : "warn",
+        title: `Aging payable: ${(p.nonprofits as any)?.name ?? "Unknown nonprofit"}`,
+        detail: `${money(p.total_cents)} unpaid · ${days} days old`,
+        href: "/admin/payables",
+      });
+    }
+  }
 
   return (
     <main className="min-h-screen bg-[#070A12] text-white">
-      {/* subtle glow */}
       <div className="pointer-events-none fixed inset-0 opacity-55">
         <div className="absolute -top-48 left-1/2 h-[560px] w-[560px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(88,140,255,0.20),transparent_60%)] blur-2xl" />
         <div className="absolute bottom-[-260px] left-[-200px] h-[620px] w-[620px] rounded-full bg-[radial-gradient(circle_at_center,rgba(255,210,143,0.14),transparent_60%)] blur-2xl" />
@@ -127,7 +141,6 @@ export default async function AdminHomePage() {
           </div>
         </div>
 
-        {/* Errors (non-fatal) */}
         {(poolsErr || payErr || relAllErr || rel7dErr) ? (
           <div className="mt-8 rounded-3xl bg-red-500/10 ring-1 ring-red-500/30 p-5 text-sm text-red-100">
             <div className="font-medium">Heads up: some metrics failed to load.</div>
@@ -145,7 +158,7 @@ export default async function AdminHomePage() {
               {money(totalRemaining)}
             </div>
             <div className="mt-2 text-xs text-white/55">
-              Donor: {money(donorRemaining)} • Partner: {money(partnerRemaining)}
+              Donor: {money(donorRemaining)} · Partner: {money(partnerRemaining)}
             </div>
           </div>
 
@@ -168,18 +181,23 @@ export default async function AdminHomePage() {
             <div className="mt-2 text-3xl font-semibold">
               {activeChallengesCount === null ? "—" : fmtInt(activeChallengesCount)}
             </div>
-            <div className="mt-2 text-xs text-white/55">
-              (best-effort count — safe across schemas)
-            </div>
+            <div className="mt-2 text-xs text-white/55">open slots in market</div>
           </div>
         </div>
+
+        {/* Command Center — togglable inline sections */}
+        <AdminCommandCenter
+          verifications={(pendingVerifications ?? []) as any}
+          alerts={alerts}
+          challenges={(recentChallenges ?? []) as any}
+        />
 
         {/* Quick Links */}
         <div className="mt-6 rounded-[28px] bg-white/5 ring-1 ring-white/10 backdrop-blur-xl shadow-[0_0_34px_10px_rgba(0,0,0,0.30)] overflow-hidden">
           <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
             <div className="text-sm text-white/70">Admin Surfaces</div>
             <div className="text-xs text-white/50">
-              Tip: “Releases” = truth. “Payables” = what we owe.
+              Tip: "Releases" = truth. "Payables" = what we owe.
             </div>
           </div>
 

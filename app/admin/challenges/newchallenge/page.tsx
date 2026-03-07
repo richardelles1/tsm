@@ -181,8 +181,11 @@ export default async function NewChallengePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="grid gap-2">
               <label className={label}>Activity</label>
-              <input name="activity" defaultValue="run" className={input} placeholder="run" required />
-              <div className={help}>Uses your DB enum (e.g. run, walk, cycle).</div>
+              <select name="activity" defaultValue="run" className={select} required>
+                <option value="run">run</option>
+                <option value="walk">walk</option>
+                <option value="cycle">cycle</option>
+              </select>
             </div>
 
             <div className="grid gap-2">

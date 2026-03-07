@@ -105,7 +105,7 @@ export default function ActiveChallengePage() {
 
       if (cancelled) return;
       if (claimErr) { setError(claimErr.message); setClaim(null); setLoading(false); return; }
-      if (!data) { router.replace("/challenges"); return; }
+      if (!data) { setClaim(null); setLoading(false); return; }
 
       setClaim(data as any);
       setLoading(false);
@@ -161,7 +161,23 @@ export default function ActiveChallengePage() {
             <div className="h-14 w-2/3 animate-pulse rounded-xl bg-white/8" />
             <div className="h-10 w-full animate-pulse rounded-2xl bg-white/6 mt-2" />
           </div>
-        ) : claim ? (
+        ) : !claim ? (
+          <div className="rounded-3xl bg-white/5 ring-1 ring-white/10 backdrop-blur-xl p-8 text-center">
+            <div className="text-4xl mb-3">🏁</div>
+            <h2 className="text-lg font-semibold">No active challenge</h2>
+            <p className="mt-2 text-white/45 text-sm">
+              You don't have an active challenge right now. Browse the marketplace to claim one.
+            </p>
+            <div className="mt-6">
+              <Link
+                href="/challenges"
+                className="inline-flex items-center justify-center rounded-full bg-[#FF9B6A] text-[#0B0F1C] px-6 py-3 font-bold hover:bg-[#FFB48E] transition shadow-[0_8px_24px_rgba(255,155,106,0.20)]"
+              >
+                Browse Challenges →
+              </Link>
+            </div>
+          </div>
+        ) : (
           <div className="space-y-4">
             {/* Main challenge card */}
             <div className="rounded-3xl bg-white/5 ring-1 ring-white/10 backdrop-blur-xl overflow-hidden">
@@ -248,7 +264,7 @@ export default function ActiveChallengePage() {
               </div>
             )}
           </div>
-        ) : null}
+        )}
       </div>
     </main>
   );
