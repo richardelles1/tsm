@@ -1,12 +1,5 @@
-// app/admin/challenges/newchallenge/page.tsx
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-
-function toInt(val: FormDataEntryValue | null) {
-  if (!val) return null;
-  const n = Number(val.toString());
-  return Number.isFinite(n) ? Math.trunc(n) : null;
-}
 
 function toFloat(val: FormDataEntryValue | null) {
   if (!val) return null;
@@ -16,6 +9,12 @@ function toFloat(val: FormDataEntryValue | null) {
 
 function toStr(val: FormDataEntryValue | null) {
   return val ? val.toString().trim() : "";
+}
+
+function toInt(val: FormDataEntryValue | null) {
+  if (!val) return null;
+  const n = Number(val.toString());
+  return Number.isFinite(n) ? Math.trunc(n) : null;
 }
 
 function dollarsToCents(val: FormDataEntryValue | null) {
@@ -34,70 +33,44 @@ function formatUsdFromCents(cents: number | null | undefined) {
   }).format(safe / 100);
 }
 
-// --- SERVER ACTION: create challenge ---
 async function createChallengeAction(formData: FormData) {
   "use server";
 
   const supabase = createSupabaseServerClient();
 
-  // --- REQUIRED ---
   const title = toStr(formData.get("title"));
   const description = toStr(formData.get("description"));
-  const activity = toStr(formData.get("activity")); // activity_type enum in DB
-  const lane = toStr(formData.get("lane")); // challenge_lane enum in DB (restricted/unrestricted etc)
-  const status = toStr(formData.get("status")); // challenge_status enum in DB (open/claimed/etc)
-
+  const activity = toStr(formData.get("activity"));
   const distanceMilesRaw = formData.get("distance_miles");
   const amountDollarsRaw = formData.get("amount_dollars");
-
   const distance_miles = toFloat(distanceMilesRaw);
   const amount_cents = dollarsToCents(amountDollarsRaw);
-
   const funding_pool_id = toStr(formData.get("funding_pool_id")) || null;
-
-  // --- OPTIONAL MATCH ---
   const corporate_partner_pmp_id = toStr(formData.get("corporate_partner_pmp_id")) || null;
   const match_ratio = toFloat(formData.get("match_ratio")) ?? 1.0;
-
-  // --- OPTIONALS ---
   const slots_total = toInt(formData.get("slots_total")) ?? 1;
   const expires_at = toStr(formData.get("expires_at")) || null;
 
-  // --- Minimal validation (keep it sane, not annoying) ---
-  if (!title) throw new Error("Title is required.");
-  if (!activity) throw new Error("Activity is required.");
-  if (!lane) throw new Error("Lane is required.");
-  if (!status) throw new Error("Status is required.");
-  if (!funding_pool_id) throw new Error("Funding pool is required.");
-  if (distance_miles === null || distance_miles <= 0) throw new Error("Distance must be > 0.");
-  if (amount_cents === null || amount_cents <= 0) throw new Error("Amount (USD) must be > 0.");
+  if (!title) redirect("/admin/challenges/newchallenge?error=Title+is+required.");
+  if (!activity) redirect("/admin/challenges/newchallenge?error=Activity+is+required.");
+  if (!funding_pool_id) redirect("/admin/challenges/newchallenge?error=Funding+pool+is+required.");
+  if (distance_miles === null || distance_miles <= 0) redirect("/admin/challenges/newchallenge?error=Distance+must+be+greater+than+0.");
+  if (amount_cents === null || amount_cents <= 0) redirect("/admin/challenges/newchallenge?error=Amount+must+be+greater+than+0.");
 
-  // --- COUPLING RULE: nonprofit is derived from the selected funding pool ---
   const { data: poolRow, error: poolErr } = await supabase
     .from("funding_pools")
     .select("id,pool_type,nonprofit_id,source_type,is_active")
     .eq("id", funding_pool_id)
     .maybeSingle();
 
-  if (poolErr) throw new Error(poolErr.message);
-  if (!poolRow) throw new Error("Selected funding pool not found.");
-  if (!poolRow.is_active) throw new Error("Selected funding pool is not active.");
-  if (poolRow.source_type !== "donor") throw new Error("Funding pool must be a donor pool.");
+  if (poolErr) redirect(`/admin/challenges/newchallenge?error=${encodeURIComponent(poolErr.message)}`);
+  if (!poolRow) redirect("/admin/challenges/newchallenge?error=Selected+funding+pool+not+found.");
+  if (!poolRow.is_active) redirect("/admin/challenges/newchallenge?error=Selected+funding+pool+is+not+active.");
+  if (poolRow.source_type !== "donor") redirect("/admin/challenges/newchallenge?error=Funding+pool+must+be+a+donor+pool.");
 
   const nonprofit_id = poolRow.nonprofit_id ?? null;
-
-  // If lane is restricted, the selected pool must be restricted + have a nonprofit_id
-  if (lane === "restricted" && (!nonprofit_id || poolRow.pool_type !== "restricted")) {
-    throw new Error("Restricted lane requires a restricted donor pool tied to a nonprofit.");
-  }
-
-  // If lane is unrestricted, the selected pool must be unrestricted + have nonprofit_id = null
-  if (lane === "unrestricted" && (nonprofit_id || poolRow.pool_type !== "unrestricted")) {
-    throw new Error("Unrestricted lane requires the unrestricted donor pool.");
-  }
-
-  // If a corporate partner is selected, keep it; otherwise null it
-  const matchPartnerId = corporate_partner_pmp_id ? corporate_partner_pmp_id : null;
+  const lane = poolRow.pool_type;
+  const matchPartnerId = corporate_partner_pmp_id || null;
 
   const { error: insertErr } = await supabase.from("challenges").insert({
     title,
@@ -112,83 +85,86 @@ async function createChallengeAction(formData: FormData) {
     match_ratio: matchPartnerId ? match_ratio : null,
     slots_total,
     slots_claimed: 0,
-    status,
-    expires_at: expires_at ? expires_at : null,
+    status: "open",
+    expires_at: expires_at || null,
   });
 
-  if (insertErr) throw new Error(insertErr.message);
+  if (insertErr) redirect(`/admin/challenges/newchallenge?error=${encodeURIComponent(insertErr.message)}`);
 
-  redirect("/challenges");
+  redirect("/admin/challenges");
 }
 
-export default async function NewChallengePage() {
+export default async function NewChallengePage({
+  searchParams,
+}: {
+  searchParams?: { error?: string };
+}) {
   const supabase = createSupabaseServerClient();
+  const errorMsg = searchParams?.error ?? null;
 
-  // --- DATA: donor pools (restricted + unrestricted) + nonprofit join for display ---
   const { data: donorPools } = await supabase
     .from("funding_pools")
-    .select(
-      "id,source_name,pool_type,source_type,nonprofit_id,total_amount_cents,remaining_amount_cents,is_active,nonprofits(name,slug)"
-    )
+    .select("id,source_name,pool_type,source_type,nonprofit_id,total_amount_cents,remaining_amount_cents,is_active,nonprofits(name,slug)")
     .eq("source_type", "donor")
     .eq("is_active", true)
     .order("created_at", { ascending: false });
 
-  // --- DATA: corporate partners (optional matching) ---
   const { data: partners } = await supabase
     .from("corporate_partners_pmp")
     .select("id,name,slug,is_active")
     .eq("is_active", true)
     .order("name", { ascending: true });
 
-  // --- STYLE: readable dark-glass form controls (no logic change) ---
-  const pageWrap = "p-8 space-y-6 text-neutral-100";
-  const muted = "text-sm text-neutral-300/80";
-  const card = "rounded-2xl border border-white/10 bg-white/5 p-5 shadow-[0_0_40px_8px_rgba(255,210,143,0.06)]";
+  const card = "rounded-2xl border border-white/10 bg-white/5 p-6 space-y-5";
   const label = "text-sm font-medium text-neutral-100";
-  const input =
-    "h-10 rounded-md border border-white/10 bg-black/30 px-3 text-neutral-100 placeholder:text-neutral-400/70 outline-none focus:border-[#FFD28F]/40 focus:ring-2 focus:ring-[#FFD28F]/15";
-  const textarea =
-    "min-h-[90px] rounded-md border border-white/10 bg-black/30 px-3 py-2 text-neutral-100 placeholder:text-neutral-400/70 outline-none focus:border-[#FFD28F]/40 focus:ring-2 focus:ring-[#FFD28F]/15";
-  const select =
-    "h-10 rounded-md border border-white/10 bg-black/30 px-3 text-neutral-100 outline-none focus:border-[#FFD28F]/40 focus:ring-2 focus:ring-[#FFD28F]/15";
-  const help = "text-xs text-neutral-300/70";
+  const input = "w-full h-10 rounded-xl border border-white/10 bg-black/30 px-3 text-neutral-100 placeholder:text-neutral-400/70 outline-none focus:border-[#FFD28F]/40 focus:ring-2 focus:ring-[#FFD28F]/15 transition";
+  const textarea = "w-full min-h-[80px] rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-neutral-100 placeholder:text-neutral-400/70 outline-none focus:border-[#FFD28F]/40 focus:ring-2 focus:ring-[#FFD28F]/15 transition";
+  const selectClass = "w-full h-10 rounded-xl border border-white/10 bg-black/30 px-3 text-neutral-100 outline-none focus:border-[#FFD28F]/40 focus:ring-2 focus:ring-[#FFD28F]/15 transition";
+  const help = "text-xs text-neutral-400/70";
 
   return (
-    <div className={pageWrap}>
-      {/* --- HEADER --- */}
+    <div className="p-6 sm:p-8 space-y-6 text-neutral-100 max-w-2xl">
       <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">New Challenge</h1>
-        <p className={muted}>
-          Create a challenge that pulls from an existing donor funding pool. Optional partner match can be attached.
+        <div className="text-[10px] font-bold tracking-[0.22em] text-white/30 uppercase">Admin</div>
+        <h1 className="text-2xl font-semibold tracking-tight">New Challenge</h1>
+        <p className="text-sm text-white/50">
+          Challenges pull from an existing donor pool. The nonprofit and lane are set automatically by the pool you select.
         </p>
       </div>
 
-      {/* --- FORM --- */}
-      <form action={createChallengeAction} className="space-y-6 max-w-3xl">
-        {/* --- Core Fields --- */}
-        <div className={`grid grid-cols-1 gap-4 ${card}`}>
-          <div className="grid gap-2">
+      {errorMsg && (
+        <div className="rounded-2xl bg-red-500/10 ring-1 ring-red-500/25 p-4 text-sm text-red-200">
+          {decodeURIComponent(errorMsg)}
+        </div>
+      )}
+
+      <form action={createChallengeAction} className="space-y-5">
+
+        {/* Card 1: Challenge Details */}
+        <div className={card}>
+          <div className="text-xs font-bold tracking-[0.18em] text-white/30 uppercase">Challenge Details</div>
+
+          <div className="space-y-1.5">
             <label className={label}>Title</label>
-            <input name="title" placeholder="Run 3 miles to unlock $25" className={input} required />
+            <input name="title" placeholder="Run 3 miles to unlock $25 for City Food Bank" className={input} required />
           </div>
 
-          <div className="grid gap-2">
-            <label className={label}>Description (optional)</label>
-            <textarea name="description" placeholder="Short context shown on the board" className={textarea} />
+          <div className="space-y-1.5">
+            <label className={label}>Description <span className="text-white/30 font-normal">(optional)</span></label>
+            <textarea name="description" placeholder="Short context shown on the challenge card" className={textarea} />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="grid gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="space-y-1.5">
               <label className={label}>Activity</label>
-              <select name="activity" defaultValue="run" className={select} required>
-                <option value="run">run</option>
-                <option value="walk">walk</option>
-                <option value="cycle">cycle</option>
+              <select name="activity" defaultValue="run" className={selectClass} required>
+                <option value="run">Run</option>
+                <option value="walk">Walk</option>
+                <option value="cycle">Cycle</option>
               </select>
             </div>
 
-            <div className="grid gap-2">
+            <div className="space-y-1.5">
               <label className={label}>Distance (miles)</label>
               <input
                 name="distance_miles"
@@ -201,7 +177,7 @@ export default async function NewChallengePage() {
               />
             </div>
 
-            <div className="grid gap-2">
+            <div className="space-y-1.5">
               <label className={label}>Amount (USD)</label>
               <input
                 name="amount_dollars"
@@ -212,113 +188,87 @@ export default async function NewChallengePage() {
                 className={input}
                 required
               />
-              <div className={help}>We convert USD → cents automatically for the database.</div>
             </div>
           </div>
         </div>
 
-        {/* --- Allocation / Ownership --- */}
-        <div className={`grid grid-cols-1 gap-4 ${card}`}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <label className={label}>Lane</label>
-              <select name="lane" defaultValue="restricted" className={select} required>
-                <option value="restricted">restricted</option>
-                <option value="unrestricted">unrestricted</option>
-              </select>
-              <div className={help}>Restricted = tied to a nonprofit pool. Unrestricted = general donor pool.</div>
-            </div>
+        {/* Card 2: Pool and Options */}
+        <div className={card}>
+          <div className="text-xs font-bold tracking-[0.18em] text-white/30 uppercase">Pool and Options</div>
 
-            <div className="grid gap-2">
-              <label className={label}>Status</label>
-              <select name="status" defaultValue="open" className={select} required>
-                <option value="open">open</option>
-                <option value="claimed">claimed</option>
-                <option value="completed">completed</option>
-                <option value="expired">expired</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Nonprofit removed: derived from funding_pool_id */}
-          <div className="grid gap-2">
-            <label className={label}>Funding Pool (donor)</label>
-            <select name="funding_pool_id" defaultValue="" className={select} required>
-              <option value="" disabled>
-                Select a donor pool…
-              </option>
+          <div className="space-y-1.5">
+            <label className={label}>Funding Pool</label>
+            <select name="funding_pool_id" defaultValue="" className={selectClass} required>
+              <option value="" disabled>Select a donor pool...</option>
               {(donorPools ?? []).map((p: any) => {
                 const npName = p?.nonprofits?.name ?? "Unrestricted";
-                const npSlug = p?.nonprofits?.slug ?? "—";
                 return (
                   <option key={p.id} value={p.id}>
-                    {p.source_name} • {p.pool_type} • {npName} ({npSlug}) • remaining{" "}
-                    {formatUsdFromCents(p.remaining_amount_cents)}
+                    {p.source_name} — {npName} — {formatUsdFromCents(p.remaining_amount_cents)} remaining
                   </option>
                 );
               })}
             </select>
             <div className={help}>
-              Pool selection determines the nonprofit automatically. No money is deducted at creation — this only links
-              the challenge to its pool.
+              The nonprofit and lane are set automatically from the pool. No funds are deducted until a challenge is approved.
             </div>
           </div>
-        </div>
 
-        {/* --- Optional Partner Match --- */}
-        <div className={`grid grid-cols-1 gap-4 ${card}`}>
-          <div className="text-sm font-medium text-neutral-100">Optional Partner Match</div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <label className={label}>Corporate Partner</label>
-              <select name="corporate_partner_pmp_id" defaultValue="" className={select}>
-                <option value="">—</option>
-                {(partners ?? []).map((p: any) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} ({p.slug})
-                  </option>
-                ))}
-              </select>
-              <div className={help}>If blank, challenge has no match attached.</div>
-            </div>
-
-            <div className="grid gap-2">
-              <label className={label}>Match Ratio (MVP: 1.0)</label>
-              <input
-                name="match_ratio"
-                type="number"
-                step="0.1"
-                min="0"
-                defaultValue="1.0"
-                className={input}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* --- Lifecycle extras --- */}
-        <div className={`grid grid-cols-1 gap-4 ${card}`}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <label className={label}>Slots Total</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className={label}>Slots</label>
               <input name="slots_total" type="number" step="1" min="1" defaultValue="1" className={input} />
+              <div className={help}>How many athletes can claim this challenge.</div>
             </div>
 
-            <div className="grid gap-2">
-              <label className={label}>Expires At (optional)</label>
+            <div className="space-y-1.5">
+              <label className={label}>Expires At <span className="text-white/30 font-normal">(optional)</span></label>
               <input name="expires_at" type="datetime-local" className={input} />
-              <div className={help}>Stored in DB as timestamp.</div>
+            </div>
+          </div>
+
+          <div className="border-t border-white/8 pt-5 space-y-4">
+            <div className="text-xs font-bold tracking-[0.18em] text-white/30 uppercase">Match Partner <span className="font-normal normal-case tracking-normal text-white/25">— optional</span></div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className={label}>Corporate Partner</label>
+                <select name="corporate_partner_pmp_id" defaultValue="" className={selectClass}>
+                  <option value="">None</option>
+                  {(partners ?? []).map((p: any) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className={label}>Match Multiplier</label>
+                <input
+                  name="match_ratio"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  defaultValue="1.0"
+                  className={input}
+                />
+                <div className={help}>1.0 = 1:1 match. Only applies if a partner is selected.</div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* --- SUBMIT --- */}
-        <div className="flex items-center gap-3">
-          <button className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-neutral-100 hover:bg-white/10">
-            Create Challenge
+        <div className="flex items-center gap-4 pt-1">
+          <button
+            type="submit"
+            className="rounded-full bg-[#FFD28F] px-7 py-3 text-sm font-bold text-[#0B0F1C] hover:bg-[#FFB48E] hover:-translate-y-0.5 transition-all shadow-[0_8px_24px_rgba(255,210,143,0.18)]"
+          >
+            Create Challenge →
           </button>
-          <div className={help}>After creation, you’ll be redirected to the challenge board.</div>
+          <a href="/admin/challenges" className="text-sm text-white/35 hover:text-white/60 transition">
+            Cancel
+          </a>
         </div>
       </form>
     </div>
