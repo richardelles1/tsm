@@ -251,7 +251,7 @@ export default async function AdminChallengesPage() {
               ← Admin Home
             </Link>
             <Link
-              href="/admin/newchallenge"
+              href="/admin/challenges/newchallenge"
               className="rounded-full bg-[#0D1326] px-4 py-2 text-sm ring-1 ring-[#FFD28F]/20 hover:ring-[#FFD28F]/35 hover:shadow-[0_0_22px_4px_rgba(255,210,143,0.14)] transition"
             >
               New Challenge →
