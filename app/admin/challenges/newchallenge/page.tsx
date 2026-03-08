@@ -97,10 +97,11 @@ async function createChallengeAction(formData: FormData) {
 export default async function NewChallengePage({
   searchParams,
 }: {
-  searchParams?: { error?: string };
+  searchParams?: Promise<{ error?: string }>;
 }) {
   const supabase = createSupabaseServerClient();
-  const errorMsg = searchParams?.error ?? null;
+  const resolvedParams = await searchParams;
+  const errorMsg = resolvedParams?.error ?? null;
 
   const { data: donorPools } = await supabase
     .from("funding_pools")
