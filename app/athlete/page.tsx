@@ -5,6 +5,13 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { motion } from "framer-motion";
+import FirstVisitOverlay from "@/components/FirstVisitOverlay";
+
+const ATHLETE_TOUR_STEPS = [
+  { label: "Active Challenge", description: "What you're working on right now", color: "#FF9B6A" },
+  { label: "Total Unlocked", description: "Your running impact total, across every challenge you've completed", color: "#FFD28F" },
+  { label: "Keep Going", description: "New challenges open regularly. Each completion adds to your permanent record", color: "#C4EBF2" },
+];
 
 type Athlete = {
   id: string;
@@ -173,6 +180,13 @@ export default function AthletePage() {
 
   return (
     <main className="min-h-screen bg-[#070A12] text-white overflow-x-hidden">
+      <FirstVisitOverlay
+        storageKey="tsm_tour_v1_athlete"
+        title="Your impact hub"
+        subtitle="Everything you've moved, in one place."
+        steps={ATHLETE_TOUR_STEPS}
+        ctaLabel="Got it"
+      />
       <div className="pointer-events-none fixed inset-0 opacity-50">
         <div className="absolute -top-40 left-1/2 h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(88,140,255,0.12),transparent_65%)] blur-3xl" />
         <div className="absolute bottom-[-300px] right-[-150px] h-[700px] w-[700px] rounded-full bg-[radial-gradient(circle_at_center,rgba(255,210,143,0.09),transparent_65%)] blur-3xl" />

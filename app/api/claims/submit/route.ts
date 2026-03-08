@@ -1,6 +1,7 @@
-// NEW FILE: app/api/claims/submit/route.ts
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { sendEmail } from "@/lib/email/send";
+import { claimConfirmedHtml, claimConfirmedSubject } from "@/lib/email/templates/claimConfirmed";
 
 export async function POST(req: Request) {
   try {
@@ -11,11 +12,9 @@ export async function POST(req: Request) {
     }
 
     const supabase = createSupabaseServerClient();
-
-    // Option A logic in DB terms, but with B UX: we mark verified immediately
     const now = new Date().toISOString();
 
-        const { error } = await supabase
+    const { error } = await supabase
       .from("claims")
       .update({
         status: "submitted",
@@ -23,13 +22,58 @@ export async function POST(req: Request) {
       })
       .eq("id", claimId);
 
-
     if (error) {
       return NextResponse.json(
         { error: error.message || "Failed to update claim." },
         { status: 500 }
       );
     }
+
+    // Fire-and-forget: send claim confirmed email
+    void (async () => {
+      try {
+        const { data: claim } = await supabase
+          .from("claims")
+          .select(`
+            athlete_id,
+            distance_miles_snapshot,
+            amount_cents_snapshot,
+            challenges:challenge_id (
+              title,
+              nonprofits:nonprofit_id ( name )
+            )
+          `)
+          .eq("id", claimId)
+          .maybeSingle();
+
+        if (!claim) return;
+
+        const { data: athlete } = await supabase
+          .from("athletes")
+          .select("email, display_name")
+          .eq("id", claim.athlete_id)
+          .maybeSingle();
+
+        if (!athlete?.email) return;
+
+        const challenge = claim.challenges as any;
+        const nonprofitName = challenge?.nonprofits?.name ?? "a nonprofit";
+
+        sendEmail({
+          to: athlete.email,
+          subject: claimConfirmedSubject,
+          html: claimConfirmedHtml({
+            athleteName: athlete.display_name ?? "Athlete",
+            challengeTitle: challenge?.title ?? "your challenge",
+            distanceMiles: claim.distance_miles_snapshot ?? 0,
+            amountDollars: Math.round((claim.amount_cents_snapshot ?? 0) / 100),
+            nonprofitName,
+          }),
+        });
+      } catch (e) {
+        console.error("[submit] Email lookup error:", e);
+      }
+    })();
 
     return NextResponse.json({ ok: true });
   } catch (e: any) {

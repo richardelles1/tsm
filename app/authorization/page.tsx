@@ -17,6 +17,8 @@ export default function AuthorizationPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [resent, setResent] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   useEffect(() => {
     setSupabase(createSupabaseBrowserClient({ persistSession: true }));
@@ -101,6 +103,18 @@ export default function AuthorizationPage() {
     setResent(true);
   }
 
+  async function handleForgotPassword() {
+    if (!supabase) return;
+    if (!email.trim()) { setError("Enter your email address above first."); return; }
+    setForgotLoading(true);
+    setError(null);
+    await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setForgotLoading(false);
+    setForgotSent(true);
+  }
+
   if (!supabase) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-[#070A12] text-white">
@@ -109,13 +123,10 @@ export default function AuthorizationPage() {
     );
   }
 
+  const inputCls = "w-full rounded-xl bg-black/30 ring-1 ring-white/10 focus:ring-[#FFD28F]/40 focus:ring-2 px-4 py-3 text-sm outline-none placeholder:text-white/30 transition text-white";
+
   return (
     <main className="min-h-screen bg-[#070A12] text-white flex items-center justify-center px-4 overflow-hidden">
-      <div className="pointer-events-none fixed inset-0 opacity-50">
-        <div className="absolute -top-40 left-1/2 h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(88,140,255,0.14),transparent_65%)] blur-3xl" />
-        <div className="absolute bottom-[-300px] right-[-100px] h-[600px] w-[600px] rounded-full bg-[radial-gradient(circle_at_center,rgba(255,210,143,0.10),transparent_65%)] blur-3xl" />
-      </div>
-
       <div className="relative w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
@@ -128,7 +139,6 @@ export default function AuthorizationPage() {
         <div className="rounded-3xl bg-white/5 ring-1 ring-white/10 backdrop-blur-xl p-7 space-y-5">
           {status === "check_email" ? (
             <div className="text-center space-y-4">
-              {/* envelope SVG */}
               <div className="flex justify-center">
                 <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <rect x="6" y="14" width="40" height="28" rx="4" stroke="#FFD28F" strokeWidth="1.5" fill="none" />
@@ -142,7 +152,7 @@ export default function AuthorizationPage() {
                   <span className="text-white font-medium">{email}</span>
                 </p>
                 <p className="mt-2 text-xs text-white/35">
-                  Click the link in the email to activate your account, then come back to log in.
+                  Click the confirmation link — it takes you straight into your profile setup.
                 </p>
               </div>
               <div className="space-y-2 pt-2">
@@ -166,6 +176,13 @@ export default function AuthorizationPage() {
             </div>
           ) : (
             <>
+              {/* Signup brand tagline */}
+              {mode === "signup" && (
+                <p className="text-xs font-medium text-[#C4EBF2] text-center tracking-wide">
+                  Join the movement. Your miles move real money.
+                </p>
+              )}
+
               {error && (
                 <div className="rounded-xl bg-red-500/10 ring-1 ring-red-500/25 px-4 py-3 text-sm text-red-200">
                   {error}
@@ -176,19 +193,24 @@ export default function AuthorizationPage() {
                 <input
                   type="email"
                   placeholder="Email address"
-                  className="w-full rounded-xl bg-black/30 ring-1 ring-white/10 focus:ring-white/30 px-4 py-3 text-sm outline-none placeholder:text-white/30 transition"
+                  className={inputCls}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                 />
-                <input
-                  type="password"
-                  placeholder="Password"
-                  className="w-full rounded-xl bg-black/30 ring-1 ring-white/10 focus:ring-white/30 px-4 py-3 text-sm outline-none placeholder:text-white/30 transition"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-                />
+                <div className="space-y-1">
+                  <input
+                    type="password"
+                    placeholder="Password"
+                    className={inputCls}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+                  />
+                  {mode === "signup" && (
+                    <p className="text-xs text-white/30 px-1">8 characters minimum</p>
+                  )}
+                </div>
               </div>
 
               <button
@@ -196,11 +218,32 @@ export default function AuthorizationPage() {
                 disabled={status === "loading"}
                 className="w-full rounded-full bg-[#FF9B6A] py-3.5 text-sm font-bold text-[#0B0F1C] shadow-[0_8px_24px_rgba(255,155,106,0.20)] hover:bg-[#FFB48E] hover:shadow-[0_10px_36px_rgba(255,155,106,0.35)] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {status === "loading" ? "Please wait…" : mode === "login" ? "Log In" : "Create Account"}
+                {status === "loading"
+                  ? "Please wait…"
+                  : mode === "login"
+                  ? "Log In"
+                  : "Join The Shared Mile"}
               </button>
 
+              {/* Forgot password — login only */}
+              {mode === "login" && (
+                <div className="text-center">
+                  {forgotSent ? (
+                    <p className="text-xs text-[#C4EBF2]">Reset link sent. Check your inbox.</p>
+                  ) : (
+                    <button
+                      onClick={handleForgotPassword}
+                      disabled={forgotLoading}
+                      className="text-xs text-white/30 hover:text-white/55 transition"
+                    >
+                      {forgotLoading ? "Sending…" : "Forgot password?"}
+                    </button>
+                  )}
+                </div>
+              )}
+
               <button
-                onClick={() => { setMode(mode === "login" ? "signup" : "login"); setError(null); }}
+                onClick={() => { setMode(mode === "login" ? "signup" : "login"); setError(null); setForgotSent(false); }}
                 className="w-full text-xs text-white/40 hover:text-[#FFD28F] py-1 transition"
               >
                 {mode === "login" ? "Don't have an account? Sign up" : "Already have an account? Log in"}

@@ -4,6 +4,13 @@ import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import FirstVisitOverlay from "@/components/FirstVisitOverlay";
+
+const CHALLENGES_TOUR_STEPS = [
+  { label: "Claim", description: "Pick a challenge that matches your pace", color: "#FF9B6A" },
+  { label: "Move", description: "Complete the distance and submit proof", color: "#FFD28F" },
+  { label: "Unlock", description: "Real funding flows to a nonprofit", color: "#C4EBF2" },
+];
 
 type ChallengeBoardRow = {
   challenge_id: string;
@@ -211,6 +218,14 @@ export default function ChallengesPage() {
 
   return (
     <main className="min-h-screen bg-[#070A12] text-white overflow-x-hidden">
+      <FirstVisitOverlay
+        storageKey="tsm_tour_v1_challenges"
+        title="The Miles Marketplace"
+        subtitle="Every challenge is a donation waiting to happen."
+        steps={CHALLENGES_TOUR_STEPS}
+        ctaLabel="Let's go →"
+        footnote="New challenges open regularly. Every completion counts."
+      />
       <div className="pointer-events-none fixed inset-0 opacity-55">
         <div className="absolute -top-40 left-1/2 h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(88,140,255,0.14),transparent_65%)] blur-3xl" />
         <div className="absolute bottom-[-300px] right-[-150px] h-[700px] w-[700px] rounded-full bg-[radial-gradient(circle_at_center,rgba(255,210,143,0.10),transparent_65%)] blur-3xl" />
