@@ -2,13 +2,14 @@
 
 import { useFormStatus } from "react-dom";
 import { useState } from "react";
+import { ImpactStatement, computeImpact } from "@/lib/impactStatement";
 
 type DonorPool = {
   id: string;
   source_name: string | null;
   pool_type: string | null;
   remaining_amount_cents: number | null;
-  nonprofits: { name: string | null } | null;
+  nonprofits: { name: string | null; impact_statements?: ImpactStatement[] | null } | null;
 };
 
 type Partner = {
@@ -71,6 +72,17 @@ const ACTIVITIES = [
 
 export default function NewChallengeForm({ donorPools, partners, action, errorMsg }: Props) {
   const [activity, setActivity] = useState("run");
+  const [selectedPoolId, setSelectedPoolId] = useState("");
+  const [pinnedIndex, setPinnedIndex] = useState<number | "random">("random");
+  const [amountDollars, setAmountDollars] = useState(25);
+
+  const selectedPool = donorPools.find((p) => p.id === selectedPoolId) ?? null;
+  const availableStatements: ImpactStatement[] = selectedPool?.nonprofits?.impact_statements ?? [];
+
+  const pinnedStatement: ImpactStatement | null =
+    pinnedIndex === "random" || !availableStatements[pinnedIndex as number]
+      ? null
+      : availableStatements[pinnedIndex as number];
 
   return (
     <form action={action} className="space-y-5">
@@ -163,6 +175,7 @@ export default function NewChallengeForm({ donorPools, partners, action, errorMs
                 defaultValue="25"
                 className="w-full h-11 rounded-xl border border-white/10 bg-black/30 pl-8 pr-3 text-2xl font-black text-[#FFD28F] placeholder:text-white/30 outline-none focus:border-[#FFD28F]/40 focus:ring-2 focus:ring-[#FFD28F]/30 transition"
                 required
+                onChange={(e) => setAmountDollars(parseFloat(e.target.value) || 0)}
               />
             </div>
           </div>
@@ -175,7 +188,13 @@ export default function NewChallengeForm({ donorPools, partners, action, errorMs
 
         <div className="space-y-1.5">
           <label className={label}>Funding Pool</label>
-          <select name="funding_pool_id" defaultValue="" className={selectClass} required>
+          <select
+            name="funding_pool_id"
+            defaultValue=""
+            className={selectClass}
+            required
+            onChange={(e) => { setSelectedPoolId(e.target.value); setPinnedIndex("random"); }}
+          >
             <option value="" disabled>Select a donor pool...</option>
             {donorPools.map((p) => {
               const npName = p?.nonprofits?.name ?? "Unrestricted";
@@ -213,6 +232,60 @@ export default function NewChallengeForm({ donorPools, partners, action, errorMs
             <input name="expires_at" type="datetime-local" className={input} />
           </div>
         </div>
+
+        {/* Impact statement pin */}
+        <input
+          type="hidden"
+          name="pinned_impact_statement"
+          value={pinnedStatement ? JSON.stringify(pinnedStatement) : ""}
+        />
+        {availableStatements.length > 0 && (
+          <div className="border-t border-white/8 pt-5 space-y-3">
+            <div className={sectionLabel}>
+              Impact Statement{" "}
+              <span className="font-normal normal-case tracking-normal text-white/25">
+                — shown on cards and completion screens
+              </span>
+            </div>
+            <div className="space-y-2">
+              <label className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-3 cursor-pointer">
+                <input
+                  type="radio"
+                  name="_pin_idx"
+                  className="mt-0.5 accent-[#FFD28F]"
+                  checked={pinnedIndex === "random"}
+                  onChange={() => setPinnedIndex("random")}
+                />
+                <div>
+                  <div className="text-sm font-medium">Random (default)</div>
+                  <div className={help}>Cycles through all of the nonprofit's impact statements.</div>
+                </div>
+              </label>
+              {availableStatements.map((stmt, i) => {
+                const preview = computeImpact(stmt, Math.round(amountDollars * 100));
+                return (
+                  <label key={i} className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-3 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="_pin_idx"
+                      className="mt-0.5 accent-[#FFD28F]"
+                      checked={pinnedIndex === i}
+                      onChange={() => setPinnedIndex(i)}
+                    />
+                    <div>
+                      <div className="text-sm font-medium text-[#FFD28F]/80">{preview}</div>
+                      <div className={help}>
+                        {stmt.type === "quantity"
+                          ? `$${stmt.dollars_per_unit} per ${stmt.label}`
+                          : `General: ${stmt.description}`}
+                      </div>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Match partner section */}
         <div className="border-t border-white/8 pt-5 space-y-4">

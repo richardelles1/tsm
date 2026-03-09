@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import ImpactBadge from "@/components/ImpactBadge";
+import { ImpactStatement, pickStatement } from "@/lib/impactStatement";
 
 type ClaimWithChallenge = {
   id: string;
@@ -24,7 +26,9 @@ type ClaimWithChallenge = {
     activity: string | null;
     distance_miles: number | null;
     amount_cents: number | null;
-    nonprofits?: { name: string | null } | null;
+    nonprofit_id?: string | null;
+    pinned_impact_statement?: ImpactStatement | null;
+    nonprofits?: { id?: string | null; name: string | null; impact_statements?: ImpactStatement[] | null } | null;
   } | null;
 };
 
@@ -103,7 +107,8 @@ export default function VerifyPage() {
           verification_photo_url,
           challenges (
             id, title, description, activity, distance_miles, amount_cents,
-            nonprofits ( name )
+            nonprofit_id, pinned_impact_statement,
+            nonprofits ( id, name, impact_statements )
           )
         `)
         .eq("id", claimId)
@@ -227,6 +232,9 @@ export default function VerifyPage() {
   const dist = claim?.distance_miles_snapshot ?? claim?.challenges?.distance_miles ?? null;
   const activityType = claim?.challenges?.activity ?? null;
   const nonprofitName = (claim?.challenges as any)?.nonprofits?.name ?? null;
+  const npoImpactStmts: ImpactStatement[] = (claim?.challenges?.nonprofits as any)?.impact_statements ?? [];
+  const pinnedStmt: ImpactStatement | null = (claim?.challenges as any)?.pinned_impact_statement ?? null;
+  const verifyImpactStmt = pinnedStmt ?? pickStatement(npoImpactStmts, claim?.challenge_id ?? "");
 
   return (
     <main className="min-h-screen bg-[#070A12] text-white overflow-x-hidden">
@@ -476,6 +484,11 @@ export default function VerifyPage() {
 
                 <div className="border-t border-white/8 pt-6 mb-6">
                   <p className="text-base font-medium text-white/70">Your miles moved real money.</p>
+                  {verifyImpactStmt && amount && (
+                    <div className="mt-2 flex items-center justify-center">
+                      <ImpactBadge statement={verifyImpactStmt} amountCents={amount} size="md" />
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3">

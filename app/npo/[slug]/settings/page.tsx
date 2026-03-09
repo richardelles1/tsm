@@ -1,6 +1,8 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAuthServerClient } from "@/lib/supabase/serverWithAuth";
 import { notFound, redirect } from "next/navigation";
+import { ImpactStatement } from "@/lib/impactStatement";
+import ImpactStatementEditor from "@/components/ImpactStatementEditor";
 
 type Nonprofit = {
   id: string;
@@ -14,6 +16,7 @@ type Nonprofit = {
   impact_goal_1: string | null;
   impact_goal_2: string | null;
   impact_goal_3: string | null;
+  impact_statements: ImpactStatement[];
 
   website_url: string | null;
   logo_url: string | null;
@@ -55,6 +58,7 @@ export default async function NonprofitSettingsPage({
         "impact_goal_1",
         "impact_goal_2",
         "impact_goal_3",
+        "impact_statements",
         "website_url",
         "logo_url",
         "contact_name",
@@ -104,6 +108,15 @@ export default async function NonprofitSettingsPage({
 
     const asBool = (name: string) => formData.get(name) === "on";
 
+    let parsedStatements: ImpactStatement[] = [];
+    try {
+      const raw = String(formData.get("impact_statements") ?? "[]");
+      parsedStatements = JSON.parse(raw);
+      if (!Array.isArray(parsedStatements)) parsedStatements = [];
+    } catch {
+      parsedStatements = [];
+    }
+
     const payload = {
       description: clean(formData.get("description")),
       tagline: clean(formData.get("tagline")),
@@ -111,6 +124,7 @@ export default async function NonprofitSettingsPage({
       impact_goal_1: clean(formData.get("impact_goal_1")),
       impact_goal_2: clean(formData.get("impact_goal_2")),
       impact_goal_3: clean(formData.get("impact_goal_3")),
+      impact_statements: parsedStatements,
 
       website_url: clean(formData.get("website_url")),
       logo_url: clean(formData.get("logo_url")),
@@ -227,28 +241,12 @@ export default async function NonprofitSettingsPage({
             </div>
           </div>
 
-          <div className="mt-4">
-            <div className={label}>Impact goals</div>
-            <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
-              <input
-                name="impact_goal_1"
-                className={input}
-                placeholder="Impact goal #1"
-                defaultValue={nonprofit.impact_goal_1 ?? ""}
-              />
-              <input
-                name="impact_goal_2"
-                className={input}
-                placeholder="Impact goal #2"
-                defaultValue={nonprofit.impact_goal_2 ?? ""}
-              />
-              <input
-                name="impact_goal_3"
-                className={input}
-                placeholder="Impact goal #3"
-                defaultValue={nonprofit.impact_goal_3 ?? ""}
-              />
-            </div>
+          <div className="mt-6">
+            <div className={label}>Impact statements</div>
+            <p className={help + " mt-1 mb-3"}>
+              These show on challenge cards, completion screens, and donor reports. Each statement translates a dollar amount into real-world impact.
+            </p>
+            <ImpactStatementEditor initial={nonprofit.impact_statements ?? []} />
           </div>
         </div>
 

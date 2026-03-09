@@ -40,6 +40,11 @@ async function createChallengeAction(formData: FormData) {
   const match_ratio = toFloat(formData.get("match_ratio")) ?? 1.0;
   const slots_total = toInt(formData.get("slots_total")) ?? 1;
   const expires_at = toStr(formData.get("expires_at")) || null;
+  const pinnedRaw = toStr(formData.get("pinned_impact_statement")) || null;
+  let pinned_impact_statement: object | null = null;
+  if (pinnedRaw) {
+    try { pinned_impact_statement = JSON.parse(pinnedRaw); } catch { pinned_impact_statement = null; }
+  }
 
   if (!title) redirect("/admin/challenges/newchallenge?error=Title+is+required.");
   if (!activity) redirect("/admin/challenges/newchallenge?error=Activity+is+required.");
@@ -77,6 +82,7 @@ async function createChallengeAction(formData: FormData) {
     slots_claimed: 0,
     status: "open",
     expires_at: expires_at || null,
+    pinned_impact_statement: pinned_impact_statement || null,
   });
 
   if (insertErr) redirect(`/admin/challenges/newchallenge?error=${encodeURIComponent(insertErr.message)}`);
@@ -95,7 +101,7 @@ export default async function NewChallengePage({
 
   const { data: donorPools } = await supabase
     .from("funding_pools")
-    .select("id,source_name,pool_type,source_type,nonprofit_id,remaining_amount_cents,is_active,nonprofits(name)")
+    .select("id,source_name,pool_type,source_type,nonprofit_id,remaining_amount_cents,is_active,nonprofits(name,impact_statements)")
     .eq("source_type", "donor")
     .eq("is_active", true)
     .order("created_at", { ascending: false });

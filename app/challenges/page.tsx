@@ -5,6 +5,8 @@ import { createClient } from "@supabase/supabase-js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import FirstVisitOverlay from "@/components/FirstVisitOverlay";
+import ImpactBadge from "@/components/ImpactBadge";
+import { ImpactStatement, pickStatement } from "@/lib/impactStatement";
 
 const CHALLENGES_TOUR_STEPS = [
   { label: "Claim", description: "Pick a challenge that matches your pace", color: "#FF9B6A" },
@@ -25,10 +27,13 @@ type ChallengeBoardRow = {
   nonprofit_name?: string | null;
   nonprofit_slug?: string | null;
   nonprofit_logo_url?: string | null;
+  nonprofit_id?: string | null;
   corporate_partner_name?: string | null;
   match_ratio?: number | null;
   impact_cents_estimate?: number | null;
   created_at?: string | null;
+  pinned_impact_statement?: ImpactStatement | null;
+  _impactStatement?: ImpactStatement | null;
 };
 
 type TickerItem = {
@@ -73,6 +78,7 @@ export default function ChallengesPage() {
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   const [rows, setRows] = useState<ChallengeBoardRow[]>([]);
+  const [npoStatements, setNpoStatements] = useState<Record<string, ImpactStatement[]>>({});
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [hasActiveClaim, setHasActiveClaim] = useState(false);
   const [reservingId, setReservingId] = useState<string | null>(null);
@@ -139,9 +145,27 @@ export default function ChallengesPage() {
         .gt("slots_left", 0)
         .order("created_at", { ascending: false });
 
+      const challengeRows = (data as ChallengeBoardRow[]) ?? [];
+
       if (!cancelled) {
         if (error) setErrorMsg(error.message);
-        setRows((data as ChallengeBoardRow[]) ?? []);
+        setRows(challengeRows);
+      }
+
+      // Batch-fetch impact_statements for all unique nonprofits
+      const npoIds = [...new Set(challengeRows.map((r) => r.nonprofit_id).filter(Boolean))] as string[];
+      if (npoIds.length > 0 && !cancelled) {
+        const { data: npoData } = await client
+          .from("nonprofits")
+          .select("id,impact_statements")
+          .in("id", npoIds);
+        if (npoData && !cancelled) {
+          const map: Record<string, ImpactStatement[]> = {};
+          for (const n of npoData) {
+            map[n.id] = Array.isArray(n.impact_statements) ? n.impact_statements : [];
+          }
+          setNpoStatements(map);
+        }
       }
 
       const { data: { user } } = await client.auth.getUser();
@@ -296,6 +320,8 @@ export default function ChallengesPage() {
                 const slotsTotal = c.slots_total ?? 0;
                 const hasMatch = !!c.corporate_partner_name;
                 const isReserving = reservingId === c.challenge_id;
+                const npoStmts = c.nonprofit_id ? (npoStatements[c.nonprofit_id] ?? []) : [];
+                const impactStmt = c.pinned_impact_statement ?? pickStatement(npoStmts, c.challenge_id);
 
                 return (
                   <motion.div
@@ -357,6 +383,11 @@ export default function ChallengesPage() {
                           {hasMatch && (
                             <div className="mt-1 text-xs text-white/45">
                               {impact} with match
+                            </div>
+                          )}
+                          {impactStmt && (
+                            <div className="mt-1">
+                              <ImpactBadge statement={impactStmt} amountCents={c.amount_cents ?? 0} />
                             </div>
                           )}
                           <div className="mt-1 text-xs text-white/35">unlocked on approval</div>

@@ -1,6 +1,7 @@
 // app/npo/[slug]/about/page.tsx
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
+import { ImpactStatement, computeImpact } from "@/lib/impactStatement";
 
 type Nonprofit = {
   id: string;
@@ -14,6 +15,7 @@ type Nonprofit = {
   impact_goal_1: string | null;
   impact_goal_2: string | null;
   impact_goal_3: string | null;
+  impact_statements: ImpactStatement[];
 
   website_url: string | null;
   logo_url: string | null;
@@ -49,6 +51,7 @@ export default async function NonprofitAboutPage({
         "impact_goal_1",
         "impact_goal_2",
         "impact_goal_3",
+        "impact_statements",
         "website_url",
         "logo_url",
         "contact_name",
@@ -63,9 +66,12 @@ export default async function NonprofitAboutPage({
   if (npErr) throw new Error(npErr.message);
   if (!nonprofit) notFound();
 
-  const goals = [nonprofit.impact_goal_1, nonprofit.impact_goal_2, nonprofit.impact_goal_3].filter(
+  const legacyGoals = [nonprofit.impact_goal_1, nonprofit.impact_goal_2, nonprofit.impact_goal_3].filter(
     (g) => typeof g === "string" && g.trim().length > 0
   ) as string[];
+  const impactStatements: ImpactStatement[] = Array.isArray(nonprofit.impact_statements)
+    ? nonprofit.impact_statements
+    : [];
 
   // --- STYLE (match your portal vibe) ---
   const pageWrap = "p-5 md:p-8 space-y-6 md:space-y-8 text-neutral-100";
@@ -165,21 +171,42 @@ export default async function NonprofitAboutPage({
         </div>
       </div>
 
-      {/* Impact goals */}
+      {/* Impact statements */}
       <div className={card}>
-        <div className="text-sm font-medium">Impact goals</div>
-        <p className={help + " mt-2"}>These are used for outward impact reporting.</p>
+        <div className="text-sm font-medium">What your support unlocks</div>
+        <p className={help + " mt-2"}>Every dollar released funds real, measurable outcomes.</p>
 
-        {goals.length === 0 ? (
-          <div className="mt-4 text-sm text-neutral-100/80">No goals published yet.</div>
-        ) : (
+        {impactStatements.length > 0 ? (
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+            {impactStatements.map((stmt, i) => {
+              const sample = stmt.type === "quantity"
+                ? computeImpact(stmt, stmt.dollars_per_unit * 100)
+                : computeImpact(stmt, 2500);
+              return (
+                <div key={i} className="rounded-2xl border border-white/10 bg-black/20 p-4 flex items-start gap-3">
+                  <span className="mt-0.5 text-[#FFD28F]/60 text-base leading-none">⚡</span>
+                  <div>
+                    <div className="text-sm text-neutral-100/90 font-medium">{sample}</div>
+                    {stmt.type === "quantity" && (
+                      <div className="text-xs text-neutral-400/60 mt-0.5">
+                        Scales with the amount unlocked
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : legacyGoals.length > 0 ? (
           <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-            {goals.map((g) => (
+            {legacyGoals.map((g) => (
               <div key={g} className="rounded-2xl border border-white/10 bg-black/20 p-4">
                 <div className="text-sm text-neutral-100/90">{g}</div>
               </div>
             ))}
           </div>
+        ) : (
+          <div className="mt-4 text-sm text-neutral-100/80">No impact statements published yet.</div>
         )}
       </div>
 
