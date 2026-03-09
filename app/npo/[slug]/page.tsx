@@ -1,6 +1,8 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import NpoHub from "@/components/NpoHub";
+import NpoDonorLinkCard from "@/components/NpoDonorLinkCard";
+import FirstVisitOverlay from "@/components/FirstVisitOverlay";
 
 function formatUsdFromCents(cents: number | null | undefined) {
   const safe = typeof cents === "number" ? cents : 0;
@@ -207,6 +209,9 @@ export default async function NonprofitPortalPage({
         </div>
       </div>
 
+      {/* DONOR LINK */}
+      <NpoDonorLinkCard slug={slug} />
+
       {/* NPO HUB — toggleable sections */}
       <NpoHub
         slug={slug}
@@ -229,6 +234,35 @@ export default async function NonprofitPortalPage({
           Back to Athlete
         </a>
       </div>
+
+      <FirstVisitOverlay
+        storageKey="tsm_tour_v1_npo"
+        title="Welcome to your portal."
+        subtitle="Here's a quick look at what you can do from this dashboard."
+        ctaLabel="Let's go"
+        steps={[
+          {
+            label: "Your dashboard",
+            description: "This is your hub for tracking donations, challenges, and payouts. Everything your nonprofit earns through movement shows up here.",
+            color: "#C4EBF2",
+          },
+          {
+            label: "Payouts and ledger",
+            description: "The Payouts and Unlock Ledger sections show every dollar earned and owed to you, with a full transaction history you can reference any time.",
+            color: "#FFD28F",
+          },
+          {
+            label: "Active challenges",
+            description: "Challenges are how athletes unlock funding for your cause. You can see who is active, how much is at stake, and when challenges expire.",
+            color: "#FF9B6A",
+          },
+          {
+            label: "Your donor link",
+            description: "Share your pre-filled donation link with your community so supporters can give directly to your fund without any extra steps.",
+            color: "#FFD28F",
+          },
+        ]}
+      />
     </div>
   );
 }

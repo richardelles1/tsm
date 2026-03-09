@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 
 type Nonprofit = { id: string; name: string; slug: string | null };
 
@@ -25,7 +26,7 @@ function fmt(cents: number) {
   return `$${(cents / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-export default function DonationForm({
+function DonationFormInner({
   nonprofits,
   submitAction,
   successMessage,
@@ -36,9 +37,19 @@ export default function DonationForm({
   successMessage?: boolean;
   errorMessage?: string | null;
 }) {
+  const searchParams = useSearchParams();
+  const npoParam = searchParams.get("npo");
+
   const [amount, setAmount] = useState("25.00");
-  const [tipIdx, setTipIdx] = useState(1); // default 10%
+  const [tipIdx, setTipIdx] = useState(1);
   const [coverFee, setCoverFee] = useState(false);
+  const [selectedNpoId, setSelectedNpoId] = useState("unrestricted");
+
+  useEffect(() => {
+    if (!npoParam) return;
+    const match = nonprofits.find((n) => n.slug === npoParam);
+    if (match) setSelectedNpoId(match.id);
+  }, [npoParam, nonprofits]);
 
   const amountCents = centsFromDollar(amount);
   const tipRate = TIP_OPTIONS[tipIdx]?.value ?? 0;
@@ -50,7 +61,6 @@ export default function DonationForm({
 
   return (
     <form action={submitAction} className="space-y-5">
-      {/* Hidden computed fields */}
       <input type="hidden" name="tip_cents" value={tipCents} />
       <input type="hidden" name="fee_cents" value={feeCents} />
       <input type="hidden" name="total_cents" value={totalCents} />
@@ -75,7 +85,8 @@ export default function DonationForm({
         <select
           name="nonprofit_id"
           className={`${inputCls} appearance-none`}
-          defaultValue="unrestricted"
+          value={selectedNpoId}
+          onChange={(e) => setSelectedNpoId(e.target.value)}
         >
           <option value="unrestricted">General fund (unrestricted)</option>
           {nonprofits.map((n) => (
@@ -208,5 +219,18 @@ export default function DonationForm({
         Funds go directly to the designated nonprofit pool, held by The Shared Mile Foundation.
       </p>
     </form>
+  );
+}
+
+export default function DonationForm(props: {
+  nonprofits: Nonprofit[];
+  submitAction: (formData: FormData) => Promise<void>;
+  successMessage?: boolean;
+  errorMessage?: string | null;
+}) {
+  return (
+    <Suspense fallback={<div className="h-1 w-16 rounded-full bg-white/10 animate-pulse mx-auto my-8" />}>
+      <DonationFormInner {...props} />
+    </Suspense>
   );
 }

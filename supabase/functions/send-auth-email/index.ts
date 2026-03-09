@@ -164,6 +164,47 @@ function emailChangeTemplate(confirmUrl: string): { subject: string; html: strin
   return { subject: "Confirm your new email — The Shared Mile", html };
 }
 
+function npoWelcomeTemplate(
+  inviteUrl: string,
+  npoName: string,
+  npoSlug: string
+): { subject: string; html: string } {
+  const portalUrl = `https://thesharedmile.com/npo/${npoSlug}`;
+  const donorLink = `https://thesharedmile.com/give?npo=${npoSlug}`;
+
+  const html = wrapLayout(`
+    <tr>
+      <td bgcolor="${BG_CARD}" style="background:${BG_CARD};border:1px solid ${BORDER_CARD};border-radius:24px;padding:36px 32px;">
+        <p style="margin:0 0 6px;color:${AQUA};font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Welcome to The Shared Mile</p>
+        <h1 style="margin:0 0 14px;color:${TEXT_PRIMARY};font-size:22px;font-weight:600;line-height:1.3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">${npoName} is on the map.</h1>
+        <p style="margin:0 0 28px;color:${TEXT_SECONDARY};font-size:14px;line-height:1.6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Your nonprofit has been added to The Shared Mile. Set up your account below to access your portal, track donations from athlete activity, and share your impact with the world.</p>
+
+        ${ctaButton("Set Up Your Account &rarr;", inviteUrl)}
+
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px;">
+          <tr>
+            <td bgcolor="${BG_STEP}" style="background:${BG_STEP};border:1px solid ${BORDER_STEP};border-radius:16px;padding:18px 20px;">
+              <p style="margin:0 0 10px;color:${TEXT_PRIMARY};font-size:13px;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Your links</p>
+              <p style="margin:0 0 6px;color:${TEXT_SECONDARY};font-size:12px;line-height:1.5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+                <span style="color:${TEXT_MUTED};">Portal:</span>
+                <a href="${portalUrl}" style="color:${AQUA};text-decoration:none;margin-left:8px;">${portalUrl}</a>
+              </p>
+              <p style="margin:0;color:${TEXT_SECONDARY};font-size:12px;line-height:1.5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+                <span style="color:${TEXT_MUTED};">Donor link:</span>
+                <a href="${donorLink}" style="color:${GOLD};text-decoration:none;margin-left:8px;">${donorLink}</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+
+        <p style="margin:20px 0 0;color:${TEXT_MUTED};font-size:12px;text-align:center;line-height:1.6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Share the donor link with your community. Athletes unlock funding when they move. Donations go directly to your fund.</p>
+      </td>
+    </tr>
+  `);
+
+  return { subject: `Welcome to The Shared Mile — ${npoName}`, html };
+}
+
 function magicLinkTemplate(magicUrl: string): { subject: string; html: string } {
   const html = wrapLayout(`
     <tr>
@@ -201,6 +242,8 @@ serve(async (req: Request) => {
   const tokenHash: string = emailData?.token_hash ?? "";
   const redirectTo: string = emailData?.redirect_to ?? "https://thesharedmile.com/auth/callback?next=/onboarding";
   const userName: string = user?.user_metadata?.full_name ?? user?.user_metadata?.name ?? "";
+  const npoSlug: string = user?.user_metadata?.npo_slug ?? "";
+  const npoName: string = user?.user_metadata?.npo_name ?? userName ?? "Your nonprofit";
 
   if (!toEmail) {
     return new Response(JSON.stringify({ error: "No email address" }), { status: 400 });
@@ -220,6 +263,9 @@ serve(async (req: Request) => {
     case "email_change":
     case "email_change_new":
       emailPayload = emailChangeTemplate(confirmUrl);
+      break;
+    case "invite":
+      emailPayload = npoWelcomeTemplate(confirmUrl, npoName, npoSlug);
       break;
     case "magiclink":
       emailPayload = magicLinkTemplate(confirmUrl);

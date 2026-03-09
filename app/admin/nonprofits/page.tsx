@@ -51,7 +51,13 @@ function shortId(id?: string | null) {
   return `${id.slice(0, 8)}…`;
 }
 
-export default async function AdminNonprofitsPage() {
+export default async function AdminNonprofitsPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ created?: string }>;
+}) {
+  const sp = (await searchParams) ?? {};
+  const justCreated = !!sp.created;
   const admin = createSupabaseServerClient();
 
   const [{ data: nonprofits, error: npErr }, { data: payables, error: pErr }, { data: releases, error: rErr }] =
@@ -208,6 +214,12 @@ export default async function AdminNonprofitsPage() {
               ← Admin Home
             </Link>
             <Link
+              href="/admin/nonprofits/new"
+              className="rounded-full bg-[#FF9B6A] px-4 py-2 text-sm font-semibold text-[#0B0F1C] hover:bg-[#FFB48E] transition shadow-[0_4px_14px_rgba(255,155,106,0.20)]"
+            >
+              + Add Nonprofit
+            </Link>
+            <Link
               href="/admin/payables"
               className="rounded-full bg-[#0D1326] px-4 py-2 text-sm ring-1 ring-[#FFD28F]/20 hover:ring-[#FFD28F]/35 hover:shadow-[0_0_22px_4px_rgba(255,210,143,0.14)] transition"
             >
@@ -221,6 +233,12 @@ export default async function AdminNonprofitsPage() {
             </Link>
           </div>
         </div>
+
+        {justCreated ? (
+          <div className="mt-8 rounded-3xl bg-emerald-500/10 ring-1 ring-emerald-500/25 px-5 py-4 text-sm text-emerald-200">
+            Nonprofit created and invite sent.
+          </div>
+        ) : null}
 
         {error ? (
           <div className="mt-8 rounded-3xl bg-red-500/10 ring-1 ring-red-500/30 p-5 text-sm text-red-100">
