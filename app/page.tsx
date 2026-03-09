@@ -174,9 +174,11 @@ export default function HomePage() {
           <div>
             <img src="/tsm-logo.jpeg" alt="The Shared Mile" className="h-8 w-auto rounded mb-1" />
           </div>
-          <div className="flex gap-6 text-xs text-white/40">
+          <div className="flex flex-wrap gap-6 text-xs text-white/40">
             <Link href="/challenges" className="hover:text-white/70 transition">Miles Marketplace</Link>
             <Link href="/give" className="hover:text-white/70 transition">Give</Link>
+            <Link href="/contact?type=partner" className="hover:text-white/70 transition">Become an Impact Partner</Link>
+            <Link href="/contact?type=nonprofit" className="hover:text-white/70 transition">Nonprofits</Link>
             <Link href="/authorization" className="hover:text-white/70 transition">Log In</Link>
           </div>
           <div className="text-[10px] text-white/20 text-center sm:text-right">
