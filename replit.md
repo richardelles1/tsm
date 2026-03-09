@@ -33,6 +33,15 @@ Admin reviews payables → marks batch as paid → Foundation pays nonprofit
 6. Releases are immutable once created. Never mutate release records.
 7. Idempotent release protection is enforced at the DB level.
 
+## NPO Portal
+- All `[slug]` sub-pages are protected by `app/npo/[slug]/layout.tsx` — requires authenticated session + nonprofit_memberships row matching the org
+- Auth reads use `lib/supabase/serverWithAuth.ts` (cookie-based, @supabase/ssr) for identity; data reads use `lib/supabase/server.ts` (service-role)
+- Settings server action verifies ownership before writing (user must have membership row)
+- Dashboard hub: `components/NpoHub.tsx` — toggleable sections (Payouts, Challenges, Unlock Ledger, Impact) modeled on AdminHub
+- Ledger shows challenge titles (not UUIDs)
+- Impact page: no athlete_id exposure
+- Funds page renamed to "Funds & Payouts" with full payables table + paid/queued KPIs
+
 ## Security Alert (Must Fix Before Real Users)
 `admin_users` table has an INSERT RLS vulnerability:
 - `admin_users_insert_self` policy (with_check: user_id = auth.uid()) overrides the blocking intent of `Admins insert manually only` (with_check: false)

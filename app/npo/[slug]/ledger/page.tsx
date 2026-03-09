@@ -1,4 +1,3 @@
-// app/npo/[slug]/ledger/page.tsx
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -55,7 +54,7 @@ export default async function NpoLedgerPage({
 
   const { data: releases, error: relErr } = await supabase
     .from("releases")
-    .select("id,challenge_id,amount_cents,matched_amount_cents,released_at,created_at")
+    .select("id,challenge_id,amount_cents,matched_amount_cents,released_at,created_at,challenges:challenge_id(title)")
     .eq("nonprofit_id", nonprofit.id)
     .order("released_at", { ascending: false })
     .limit(200);
@@ -67,7 +66,6 @@ export default async function NpoLedgerPage({
   const baseUnlockedCents = rows.reduce((acc: number, r: any) => acc + (r.amount_cents ?? 0), 0);
   const matchUnlockedCents = rows.reduce((acc: number, r: any) => acc + (r.matched_amount_cents ?? 0), 0);
   const totalUnlockedCents = baseUnlockedCents + matchUnlockedCents;
-
   const lastUnlockAt = rows?.[0]?.released_at ?? null;
 
   const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
@@ -78,7 +76,6 @@ export default async function NpoLedgerPage({
     })
     .reduce((acc: number, r: any) => acc + (r.amount_cents ?? 0) + (r.matched_amount_cents ?? 0), 0);
 
-  // --- STYLE ---
   const pageWrap = "p-5 md:p-8 space-y-6 text-neutral-100";
   const muted = "text-sm text-neutral-300/80";
   const help = "text-xs text-neutral-300/70";
@@ -93,23 +90,20 @@ export default async function NpoLedgerPage({
 
   return (
     <div className={pageWrap}>
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Unlock ledger</h1>
+          <h1 className="text-2xl font-semibold">Unlock Ledger</h1>
           <p className={muted}>Releases (unlocked impact) for {nonprofit.name}</p>
         </div>
-
         <Link
           href={`/npo/${slug}`}
           className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm hover:bg-white/10"
         >
-          ← Home
+          Home
         </Link>
       </div>
 
-      {/* KPIs (minimal) */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className={card}>
           <div className={kpiLabel}>Total unlocked (lifetime)</div>
           <div className={kpiVal}>{formatUsdFromCents(totalUnlockedCents)}</div>
@@ -135,13 +129,12 @@ export default async function NpoLedgerPage({
         </div>
       </div>
 
-      {/* Table */}
       <div className={card}>
         <div className="text-sm font-medium">Releases</div>
-        <div className={help}>If it’s not here, it didn’t unlock.</div>
+        <div className={help}>If it's not here, it didn't unlock.</div>
 
         <div className={`${tableWrap} mt-4`}>
-          <table className="min-w-[720px] w-full">
+          <table className="min-w-[640px] w-full">
             <thead className="bg-black/20">
               <tr>
                 <th className={th}>Date</th>
@@ -163,13 +156,14 @@ export default async function NpoLedgerPage({
                   const base = r.amount_cents ?? 0;
                   const match = r.matched_amount_cents ?? 0;
                   const total = base + match;
+                  const challengeTitle = r.challenges?.title ?? "—";
                   return (
                     <tr key={r.id} className={row}>
                       <td className={td}>{fmtDate(r.released_at ?? r.created_at)}</td>
                       <td className={`${td} font-mono`}>{formatUsdFromCents(base)}</td>
                       <td className={`${td} font-mono`}>{formatUsdFromCents(match)}</td>
                       <td className={`${td} font-mono`}>{formatUsdFromCents(total)}</td>
-                      <td className={`${td} font-mono`}>{r.challenge_id ?? "—"}</td>
+                      <td className={td}>{challengeTitle}</td>
                     </tr>
                   );
                 })

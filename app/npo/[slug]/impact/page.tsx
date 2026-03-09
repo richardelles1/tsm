@@ -1,15 +1,9 @@
-// app/npo/[slug]/impact/page.tsx
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
 function fmtNumber(n: number | null | undefined) {
   const safe = typeof n === "number" ? n : 0;
-  return new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(safe);
-}
-
-function fmtMiles(miles: number | null | undefined) {
-  const safe = typeof miles === "number" ? miles : 0;
   return new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(safe);
 }
 
@@ -43,11 +37,10 @@ export default async function NpoImpactPage({
   if (npErr) throw new Error(npErr.message);
   if (!nonprofit) notFound();
 
-  // Approved claims joined to this nonprofit via challenges
   const { data: approvedClaims, error: clErr } = await supabase
     .from("claims")
     .select(
-      "id,athlete_id,distance_miles_snapshot,verified_at,created_at,challenges!inner(id,nonprofit_id,title)"
+      "id,distance_miles_snapshot,verified_at,created_at,challenges!inner(id,nonprofit_id,title)"
     )
     .eq("status", "approved")
     .eq("challenges.nonprofit_id", nonprofit.id)
@@ -65,11 +58,9 @@ export default async function NpoImpactPage({
 
   const uniqueAthletes = new Set(rows.map((c: any) => c.athlete_id).filter(Boolean));
   const athleteCount = uniqueAthletes.size;
-
   const approvedCount = rows.length;
   const lastVerifiedAt = rows?.[0]?.verified_at ?? null;
 
-  // --- STYLE ---
   const pageWrap = "p-5 md:p-8 space-y-6 text-neutral-100";
   const muted = "text-sm text-neutral-300/80";
   const help = "text-xs text-neutral-300/70";
@@ -83,27 +74,24 @@ export default async function NpoImpactPage({
 
   return (
     <div className={pageWrap}>
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Impact</h1>
           <p className={muted}>Movement outcomes linked to {nonprofit.name}</p>
         </div>
-
         <Link
           href={`/npo/${slug}`}
           className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm hover:bg-white/10"
         >
-          ← Home
+          Home
         </Link>
       </div>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className={card}>
           <div className={kpiLabel}>Miles (lifetime)</div>
-          <div className={kpiVal}>{fmtMiles(totalMiles)}</div>
-          <div className={help}>Sum of approved claim distance snapshots.</div>
+          <div className={kpiVal}>{fmtNumber(totalMiles)}</div>
+          <div className={help}>Approved claim distances.</div>
         </div>
 
         <div className={card}>
@@ -121,18 +109,17 @@ export default async function NpoImpactPage({
         <div className={card}>
           <div className={kpiLabel}>Last verified</div>
           <div className={kpiVal}>{fmtDate(lastVerifiedAt)}</div>
-          <div className={help}>Most recent approval timestamp.</div>
+          <div className={help}>Most recent approval.</div>
         </div>
       </div>
 
-      {/* Recent approvals */}
       <div className={card}>
         <div className="flex items-center justify-between gap-3">
           <div>
             <div className="text-sm font-medium">Recent verified activity</div>
-            <div className={help}>Latest approved claims (high-signal, low-noise).</div>
+            <div className={help}>Latest approved claims, showing up to 20.</div>
           </div>
-          <span className={pill}>Showing {Math.min(rows.length, 20)}</span>
+          <span className={pill}>{Math.min(rows.length, 20)} shown</span>
         </div>
 
         <div className="mt-4 grid gap-3">
@@ -149,13 +136,9 @@ export default async function NpoImpactPage({
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                     <div className="space-y-1">
                       <div className="text-sm font-medium">{challengeTitle}</div>
-                      <div className={help}>Verified: {fmtDate(when)}</div>
+                      <div className={help}>Verified {fmtDate(when)}</div>
                     </div>
-
-                    <div className="flex items-center gap-2">
-                      <span className={pill}>{fmtMiles(miles)} mi</span>
-                      <span className={pill}>athlete: {c.athlete_id ? "✅" : "—"}</span>
-                    </div>
+                    <span className={pill}>{fmtNumber(miles)} mi</span>
                   </div>
                 </div>
               );
@@ -164,7 +147,7 @@ export default async function NpoImpactPage({
         </div>
 
         <div className="mt-4 text-xs text-neutral-300/70">
-          Note: This page reflects <span className="font-mono">approved</span> claims only.
+          Showing <span className="font-mono">approved</span> claims only.
         </div>
       </div>
     </div>

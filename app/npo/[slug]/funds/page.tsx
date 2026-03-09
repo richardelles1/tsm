@@ -22,6 +22,12 @@ function fmtDate(ts: string | null | undefined) {
   });
 }
 
+const STATUS_LABEL: Record<string, string> = {
+  queued: "Queued",
+  paid: "Paid",
+  pending: "Pending",
+};
+
 export default async function FundsPage({
   params,
 }: {
@@ -40,19 +46,29 @@ export default async function FundsPage({
 
   if (!nonprofit) notFound();
 
-  // Funding pools are internal finance objects, but this page is allowed to show them
-  // because it’s “Funds” (not a public donor page).
-  const { data: pools, error: poolErr } = await supabase
-    .from("funding_pools")
-    .select(
-      "id,pool_type,source_name,source_type,total_amount_cents,remaining_amount_cents,currency,is_active,starts_at,ends_at,created_at,corporate_partner_pmp_id"
-    )
-    .eq("nonprofit_id", nonprofit.id)
-    .order("created_at", { ascending: false });
+  const [
+    { data: pools, error: poolErr },
+    { data: payables, error: payErr },
+  ] = await Promise.all([
+    supabase
+      .from("funding_pools")
+      .select(
+        "id,pool_type,source_name,source_type,total_amount_cents,remaining_amount_cents,currency,is_active,starts_at,ends_at,created_at,corporate_partner_pmp_id"
+      )
+      .eq("nonprofit_id", nonprofit.id)
+      .order("created_at", { ascending: false }),
+
+    supabase
+      .from("payables")
+      .select("id,total_cents,status,created_at,paid_at")
+      .eq("nonprofit_id", nonprofit.id)
+      .order("created_at", { ascending: false })
+      .limit(200),
+  ]);
 
   if (poolErr) throw new Error(poolErr.message);
+  if (payErr) throw new Error(payErr.message);
 
-  // Optional: enrich with partner name when a pool is backed by a corporate partner
   const partnerIds = Array.from(
     new Set((pools ?? []).map((p: any) => p.corporate_partner_pmp_id).filter(Boolean))
   );
@@ -69,12 +85,16 @@ export default async function FundsPage({
   }
 
   const rows = pools ?? [];
+  const payRows = payables ?? [];
 
   const activePools = rows.filter((p: any) => p.is_active);
-  const inactivePools = rows.filter((p: any) => !p.is_active);
-
   const totalCommittedCents = rows.reduce((acc: number, p: any) => acc + (p.total_amount_cents ?? 0), 0);
   const totalRemainingCents = rows.reduce((acc: number, p: any) => acc + (p.remaining_amount_cents ?? 0), 0);
+
+  const queuedPayables = payRows.filter((p: any) => p.status === "queued");
+  const paidPayables = payRows.filter((p: any) => p.status === "paid");
+  const totalQueuedCents = queuedPayables.reduce((acc: number, p: any) => acc + (p.total_cents ?? 0), 0);
+  const totalPaidCents = paidPayables.reduce((acc: number, p: any) => acc + (p.total_cents ?? 0), 0);
 
   const pageWrap = "p-5 md:p-8 space-y-6 text-neutral-100";
   const card =
@@ -84,6 +104,10 @@ export default async function FundsPage({
     "inline-flex items-center rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs";
   const kpiLabel = "text-xs text-neutral-300/70";
   const kpiVal = "mt-2 text-2xl font-semibold";
+  const tableWrap = "overflow-x-auto rounded-2xl border border-white/10 bg-black/20";
+  const th = "px-4 py-3 text-left text-xs font-medium text-neutral-300/80";
+  const td = "px-4 py-3 text-sm text-neutral-100/90 whitespace-nowrap";
+  const rowCls = "border-t border-white/10";
 
   const badge = (active: boolean) => (
     <span className={pill}>{active ? "active" : "inactive"}</span>
@@ -93,10 +117,9 @@ export default async function FundsPage({
     const partnerName = p.corporate_partner_pmp_id
       ? partnerMap.get(p.corporate_partner_pmp_id) || "Corporate partner"
       : null;
-
     const source = p.source_name || partnerName || "Funding pool";
     const type = p.pool_type ? String(p.pool_type).replaceAll("_", " ") : "funds";
-    return `${source} • ${type}`;
+    return `${source} · ${type}`;
   };
 
   return (
@@ -104,20 +127,19 @@ export default async function FundsPage({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Funds</h1>
-          <p className={muted}>Funding pools that power challenges for {nonprofit.name}</p>
+          <h1 className="text-2xl font-semibold">Funds & Payouts</h1>
+          <p className={muted}>Funding pools and payout history for {nonprofit.name}</p>
         </div>
-
         <Link
           href={`/npo/${slug}`}
           className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm hover:bg-white/10"
         >
-          ← Home
+          Home
         </Link>
       </div>
 
-      {/* Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Summary KPIs */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className={card}>
           <div className={kpiLabel}>Active pools</div>
           <div className={kpiVal}>{activePools.length}</div>
@@ -129,13 +151,70 @@ export default async function FundsPage({
         </div>
 
         <div className={card}>
-          <div className={kpiLabel}>Remaining (available)</div>
-          <div className={kpiVal}>{formatUsdFromCents(totalRemainingCents)}</div>
+          <div className={kpiLabel}>Currently owed</div>
+          <div className={`${kpiVal} text-[#FFD28F]`}>{formatUsdFromCents(totalQueuedCents)}</div>
+          <div className="mt-1 text-xs text-neutral-300/60">Queued payables.</div>
+        </div>
+
+        <div className={card}>
+          <div className={kpiLabel}>Total paid out</div>
+          <div className={kpiVal}>{formatUsdFromCents(totalPaidCents)}</div>
+          <div className="mt-1 text-xs text-neutral-300/60">Lifetime.</div>
         </div>
       </div>
 
-      {/* Pools */}
+      {/* Payouts table */}
+      <div className={card}>
+        <div className="text-sm font-medium">Payout history</div>
+        <div className="mt-1 text-xs text-neutral-300/70">Every payable associated with your account.</div>
+
+        <div className={`${tableWrap} mt-4`}>
+          <table className="min-w-[540px] w-full">
+            <thead className="bg-black/20">
+              <tr>
+                <th className={th}>Created</th>
+                <th className={th}>Amount</th>
+                <th className={th}>Status</th>
+                <th className={th}>Paid date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {payRows.length === 0 ? (
+                <tr className={rowCls}>
+                  <td className={td} colSpan={4}>
+                    <span className={muted}>No payouts yet.</span>
+                  </td>
+                </tr>
+              ) : (
+                payRows.map((p: any) => (
+                  <tr key={p.id} className={rowCls}>
+                    <td className={td}>{fmtDate(p.created_at)}</td>
+                    <td className={`${td} font-mono`}>{formatUsdFromCents(p.total_cents)}</td>
+                    <td className={td}>
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs border ${
+                          p.status === "paid"
+                            ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                            : p.status === "queued"
+                              ? "border-[#FFD28F]/30 bg-[#FFD28F]/10 text-[#FFD28F]"
+                              : "border-white/10 bg-black/20 text-neutral-300"
+                        }`}
+                      >
+                        {STATUS_LABEL[p.status] ?? p.status ?? "—"}
+                      </span>
+                    </td>
+                    <td className={td}>{fmtDate(p.paid_at)}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Funding pools */}
       <div className="space-y-3">
+        <div className="text-sm font-medium text-neutral-200">Funding pools</div>
         {rows.length === 0 ? (
           <div className={card}>
             <p className={muted}>No funding pools yet.</p>
@@ -151,7 +230,7 @@ export default async function FundsPage({
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                   <div className="space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
-                      <div className="text-lg font-medium">{poolTitle(p)}</div>
+                      <div className="text-base font-medium">{poolTitle(p)}</div>
                       {badge(!!p.is_active)}
                     </div>
 
@@ -162,12 +241,8 @@ export default async function FundsPage({
                     </div>
 
                     <div className="text-xs text-neutral-300/70">
-                      Window: {fmtDate(p.starts_at)} → {fmtDate(p.ends_at)}
+                      Window: {fmtDate(p.starts_at)} to {fmtDate(p.ends_at)}
                     </div>
-                  </div>
-
-                  <div className="text-xs text-neutral-300/70 font-mono break-all">
-                    pool: {p.id}
                   </div>
                 </div>
               </div>
@@ -175,14 +250,6 @@ export default async function FundsPage({
           })
         )}
       </div>
-
-      {/* Inactive section */}
-      {inactivePools.length > 0 ? (
-        <div className="pt-2">
-          <div className="text-sm font-medium text-neutral-200/90">Inactive pools</div>
-          <p className={muted}>Kept for history and audit continuity.</p>
-        </div>
-      ) : null}
     </div>
   );
 }

@@ -1,9 +1,5 @@
-// OLD
-// (replace the entire contents of app/npo/[slug]/settings/page.tsx)
-
-// NEW
-// app/npo/[slug]/settings/page.tsx
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAuthServerClient } from "@/lib/supabase/serverWithAuth";
 import { notFound, redirect } from "next/navigation";
 
 type Nonprofit = {
@@ -76,7 +72,30 @@ export default async function NonprofitSettingsPage({
   async function saveSettings(formData: FormData) {
     "use server";
 
-    const supabase = createSupabaseServerClient();
+    const authClient = await createSupabaseAuthServerClient();
+    const {
+      data: { user },
+    } = await authClient.auth.getUser();
+
+    if (!user) {
+      redirect("/authorization");
+    }
+
+    const nonprofitId = String(formData.get("nonprofit_id") ?? "").trim();
+    if (!nonprofitId) redirect(`/npo/${slug}/settings?error=1`);
+
+    const serviceClient = createSupabaseServerClient();
+
+    const { data: membership } = await serviceClient
+      .from("nonprofit_memberships")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("nonprofit_id", nonprofitId)
+      .maybeSingle();
+
+    if (!membership) {
+      redirect(`/npo/${slug}/settings?error=1`);
+    }
 
     const clean = (v: FormDataEntryValue | null) => {
       const s = typeof v === "string" ? v.trim() : "";
@@ -85,11 +104,7 @@ export default async function NonprofitSettingsPage({
 
     const asBool = (name: string) => formData.get(name) === "on";
 
-    const nonprofitId = String(formData.get("nonprofit_id") ?? "").trim();
-    if (!nonprofitId) redirect(`/npo/${slug}/settings?error=1`);
-
     const payload = {
-      // Published outward (powers /about and the portal vibe)
       description: clean(formData.get("description")),
       tagline: clean(formData.get("tagline")),
       mission: clean(formData.get("mission")),
@@ -97,24 +112,24 @@ export default async function NonprofitSettingsPage({
       impact_goal_2: clean(formData.get("impact_goal_2")),
       impact_goal_3: clean(formData.get("impact_goal_3")),
 
-      // Branding + contact
       website_url: clean(formData.get("website_url")),
       logo_url: clean(formData.get("logo_url")),
       contact_name: clean(formData.get("contact_name")),
       contact_email: clean(formData.get("contact_email")),
 
-      // Portal behavior
       accepting_challenges: asBool("accepting_challenges"),
       profile_locked: asBool("profile_locked"),
     };
 
-    const { error } = await supabase.from("nonprofits").update(payload).eq("id", nonprofitId);
+    const { error } = await serviceClient
+      .from("nonprofits")
+      .update(payload)
+      .eq("id", nonprofitId);
 
     if (error) redirect(`/npo/${slug}/settings?error=1`);
     redirect(`/npo/${slug}/settings?saved=1`);
   }
 
-  // --- STYLE (match your portal vibe) ---
   const pageWrap = "p-5 md:p-8 space-y-6 md:space-y-8 text-neutral-100";
   const card =
     "rounded-2xl border border-white/10 bg-white/5 p-4 md:p-5 shadow-[0_0_40px_8px_rgba(255,210,143,0.06)]";
@@ -131,15 +146,12 @@ export default async function NonprofitSettingsPage({
     "inline-flex items-center justify-center rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-neutral-100 hover:bg-white/15 border border-white/15";
   const pill =
     "inline-flex items-center rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs text-neutral-200";
-
-  const dot = nonprofit.is_active ? "bg-emerald-400" : "bg-neutral-500";
-
   const checkbox =
     "h-4 w-4 rounded border border-white/20 bg-black/30 text-neutral-100 accent-white/80";
+  const dot = nonprofit.is_active ? "bg-emerald-400" : "bg-neutral-500";
 
   return (
     <div className={pageWrap}>
-      {/* Header */}
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
@@ -153,7 +165,7 @@ export default async function NonprofitSettingsPage({
 
           <div className="flex items-center gap-3">
             <a href={`/npo/${slug}`} className={btn}>
-              ← Home
+              Home
             </a>
             {nonprofit.website_url ? (
               <a href={nonprofit.website_url} target="_blank" rel="noreferrer" className={btn}>
@@ -171,7 +183,7 @@ export default async function NonprofitSettingsPage({
 
         {errored ? (
           <div className="rounded-2xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm">
-            Couldn’t save changes. Try again.
+            Couldn't save changes. Check your access and try again.
           </div>
         ) : null}
       </div>
@@ -179,7 +191,6 @@ export default async function NonprofitSettingsPage({
       <form action={saveSettings} className="space-y-6">
         <input type="hidden" name="nonprofit_id" value={nonprofit.id} />
 
-        {/* Published outward */}
         <div className={card}>
           <div className="text-sm font-medium">Published content</div>
           <p className={help + " mt-2"}>This powers your About page and public-facing portal text.</p>
@@ -241,7 +252,6 @@ export default async function NonprofitSettingsPage({
           </div>
         </div>
 
-        {/* Branding + contact */}
         <div className={card}>
           <div className="text-sm font-medium">Branding & contact</div>
 
@@ -288,7 +298,6 @@ export default async function NonprofitSettingsPage({
           </div>
         </div>
 
-        {/* Portal behavior */}
         <div className={card}>
           <div className="text-sm font-medium">Portal behavior</div>
           <p className={help + " mt-2"}>These control how your portal behaves (not payouts).</p>
@@ -303,7 +312,7 @@ export default async function NonprofitSettingsPage({
               />
               <div>
                 <div className="text-sm font-medium">Accepting new challenges</div>
-                <div className={help}>If off, you won’t appear as available for new fundraising challenges.</div>
+                <div className={help}>If off, you won't appear as available for new fundraising challenges.</div>
               </div>
             </label>
 
@@ -316,13 +325,12 @@ export default async function NonprofitSettingsPage({
               />
               <div>
                 <div className="text-sm font-medium">Lock profile</div>
-                <div className={help}>If on, settings become effectively “frozen” for consistency.</div>
+                <div className={help}>If on, settings are frozen for consistency.</div>
               </div>
             </label>
           </div>
         </div>
 
-        {/* Actions */}
         <div className="flex items-center gap-3">
           <button type="submit" className={primaryBtn}>
             Save changes

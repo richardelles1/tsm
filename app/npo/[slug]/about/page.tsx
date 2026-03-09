@@ -1,7 +1,3 @@
-// OLD
-// (create or replace the entire contents of app/npo/[slug]/about/page.tsx)
-
-// NEW
 // app/npo/[slug]/about/page.tsx
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
