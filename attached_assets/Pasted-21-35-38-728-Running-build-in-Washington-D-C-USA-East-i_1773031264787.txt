@@ -1,0 +1,71 @@
+21:35:38.728 Running build in Washington, D.C., USA (East) – iad1
+21:35:38.729 Build machine configuration: 2 cores, 8 GB
+21:35:38.873 Cloning github.com/richardelles1/tsm (Branch: main, Commit: aaf6ca6)
+21:35:40.999 Cloning completed: 2.126s
+21:35:41.161 Restored build cache from previous deployment (97ThQADm1a8vUjDjHPVwpqv6a873)
+21:35:42.155 Running "vercel build"
+21:35:42.722 Vercel CLI 50.28.0
+21:35:43.400 Installing dependencies...
+21:35:45.406 
+21:35:45.407 up to date in 1s
+21:35:45.407 
+21:35:45.408 225 packages are looking for funding
+21:35:45.408   run `npm fund` for details
+21:35:45.509 Detected Next.js version: 15.5.12
+21:35:45.515 Running "npm run build"
+21:35:45.827 
+21:35:45.828 > omm@0.1.0 build
+21:35:45.828 > next build
+21:35:45.829 
+21:35:46.586    ▲ Next.js 15.5.12
+21:35:46.587 
+21:35:46.644    Creating an optimized production build ...
+21:35:55.639 <w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (130kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+21:35:56.786 Browserslist: browsers data (caniuse-lite) is 10 months old. Please run:
+21:35:56.787   npx update-browserslist-db@latest
+21:35:56.788   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+21:35:58.349  ⚠ Compiled with warnings in 11.2s
+21:35:58.350 
+21:35:58.351 ./node_modules/@supabase/realtime-js/dist/module/lib/websocket-factory.js
+21:35:58.351 A Node.js API is used (process.versions at line: 39) which is not supported in the Edge Runtime.
+21:35:58.351 Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+21:35:58.351 
+21:35:58.351 Import trace for requested module:
+21:35:58.352 ./node_modules/@supabase/realtime-js/dist/module/lib/websocket-factory.js
+21:35:58.352 ./node_modules/@supabase/realtime-js/dist/module/index.js
+21:35:58.352 ./node_modules/@supabase/supabase-js/dist/index.mjs
+21:35:58.352 ./node_modules/@supabase/ssr/dist/module/createBrowserClient.js
+21:35:58.352 ./node_modules/@supabase/ssr/dist/module/index.js
+21:35:58.353 
+21:35:58.353 ./node_modules/@supabase/supabase-js/dist/index.mjs
+21:35:58.353 A Node.js API is used (process.version at line: 395) which is not supported in the Edge Runtime.
+21:35:58.354 Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+21:35:58.354 
+21:35:58.354 Import trace for requested module:
+21:35:58.354 ./node_modules/@supabase/supabase-js/dist/index.mjs
+21:35:58.355 ./node_modules/@supabase/ssr/dist/module/createBrowserClient.js
+21:35:58.355 ./node_modules/@supabase/ssr/dist/module/index.js
+21:35:58.355 
+21:35:58.356    Skipping linting
+21:35:58.356    Checking validity of types ...
+21:36:07.154    Collecting page data ...
+21:36:07.746  ⚠ Using edge runtime on a page currently disables static generation for that page
+21:36:10.338    Generating static pages (0/30) ...
+21:36:11.123    Generating static pages (7/30) 
+21:36:12.586    Generating static pages (14/30) 
+21:36:13.035    Generating static pages (22/30) 
+21:36:13.360  ⨯ useSearchParams() should be wrapped in a suspense boundary at page "/authorization". Read more: https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
+21:36:13.361     at g (/vercel/path0/.next/server/chunks/4886.js:1:113060)
+21:36:13.361     at m (/vercel/path0/.next/server/chunks/4886.js:67:14529)
+21:36:13.361     at g (/vercel/path0/.next/server/app/authorization/page.js:1:418)
+21:36:13.362     at n3 (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:2:82831)
+21:36:13.362     at n6 (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:2:84601)
+21:36:13.362     at n5 (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:2:104801)
+21:36:13.363     at n7 (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:2:102219)
+21:36:13.363     at n8 (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:2:83183)
+21:36:13.363     at n6 (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:2:84647)
+21:36:13.363     at n6 (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:2:101560)
+21:36:13.363 Error occurred prerendering page "/authorization". Read more: https://nextjs.org/docs/messages/prerender-error
+21:36:13.364 Export encountered an error on /authorization/page: /authorization, exiting the build.
+21:36:13.381  ⨯ Next.js build worker exited with code: 1 and signal: null
+21:36:13.439 Error: Command "npm run build" exited with 1
