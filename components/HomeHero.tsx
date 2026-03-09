@@ -111,7 +111,7 @@ function NonprofitsPanel() {
       </div>
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-sm sm:max-w-none mx-auto">
         <Link
-          href="/give"
+          href="/contact?type=nonprofit"
           className="w-full sm:w-auto inline-flex items-center justify-center rounded-full bg-[#FF9B6A] px-8 py-4 text-base font-bold text-[#0B0F1C] shadow-[0_12px_40px_rgba(255,155,106,0.30)] hover:bg-[#FFB48E] hover:-translate-y-0.5 transition-all"
         >
           Apply to Be a Beneficiary →
@@ -144,7 +144,7 @@ function PartnersPanel() {
       </div>
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-sm sm:max-w-none mx-auto">
         <Link
-          href="/give"
+          href="/contact?type=partner"
           className="w-full sm:w-auto inline-flex items-center justify-center rounded-full bg-[#FF9B6A] px-8 py-4 text-base font-bold text-[#0B0F1C] shadow-[0_12px_40px_rgba(255,155,106,0.30)] hover:bg-[#FFB48E] hover:-translate-y-0.5 transition-all"
         >
           Become an Impact Partner →
