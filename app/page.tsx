@@ -35,7 +35,7 @@ export default function HomePage() {
           </h1>
 
           <p className="mt-6 text-lg sm:text-xl text-white/65 max-w-xl mx-auto leading-relaxed">
-            A marketplace where verified athletic activity releases committed funding to nonprofits. Every mile you run moves real money.
+            A marketplace where verified athletic activity releases committed funding to nonprofits. Every mile you cover moves real money.
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -111,41 +111,63 @@ export default function HomePage() {
         <div className="mx-auto max-w-4xl text-center">
           <div className="text-[10px] font-bold tracking-[0.22em] text-white/35 uppercase mb-3">The Flywheel</div>
           <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight mb-4">
-            The money is committed before a single mile is run.
+            The money is committed before a single move is made.
           </h2>
           <p className="text-white/50 max-w-xl mx-auto mb-4 text-sm leading-relaxed">
-            Impact Partners and donors commit funds upfront. They sit in dedicated pools, earmarked and auditable, waiting for athletes to release them. No movement, no release.
+            Donors and Impact Partners commit funds upfront. They sit in dedicated pools, earmarked and auditable, locked until athletes release them. No movement, no release.
           </p>
           <p className="text-white/40 max-w-lg mx-auto mb-12 text-sm leading-relaxed">
             When an Impact Partner matches, the amount doubles before it reaches the nonprofit.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-0">
-            {[
-              { label: "Impact Partners", sub: "commit to pools", color: "text-[#C4EBF2]" },
-              { arrow: true },
-              { label: "Challenge Posted", sub: "funds earmarked", color: "text-[#FFD28F]" },
-              { arrow: true },
-              { label: "Athlete Moves", sub: "unlocks with activity", color: "text-[#FF9B6A]" },
-              { arrow: true },
-              { label: "Verified", sub: "proof reviewed", color: "text-white/70" },
-              { arrow: true },
-              { label: "Nonprofit Receives", sub: "real funding released", color: "text-white" },
-            ].map((item, i) => {
-              if ("arrow" in item) {
-                return (
-                  <div key={i} className="text-white/20 text-2xl font-thin sm:mx-1 rotate-90 sm:rotate-0">
-                    →
-                  </div>
-                );
-              }
-              return (
-                <div key={i} className="rounded-2xl bg-white/5 ring-1 ring-white/8 px-4 py-3 text-center min-w-[100px]">
-                  <div className={`text-xs font-bold ${item.color}`}>{item.label}</div>
-                  <div className="text-[10px] text-white/35 mt-0.5">{item.sub}</div>
-                </div>
-              );
-            })}
+          {/* Flywheel diagram — two sources at top, then linear flow */}
+          <div className="flex flex-col items-center gap-0">
+
+            {/* Row 1: two funding sources */}
+            <div className="flex flex-row items-center justify-center gap-2">
+              <div className="rounded-2xl bg-white/5 ring-1 ring-white/8 px-4 py-3 text-center min-w-[110px]">
+                <div className="text-xs font-bold text-[#C4EBF2]">Donors</div>
+                <div className="text-[10px] text-white/35 mt-0.5">give to pools</div>
+              </div>
+              <div className="rounded-2xl bg-white/5 ring-1 ring-white/8 px-4 py-3 text-center min-w-[130px]">
+                <div className="text-xs font-bold text-[#FFD28F]">Impact Partners</div>
+                <div className="text-[10px] text-white/35 mt-0.5">commit and match</div>
+              </div>
+            </div>
+
+            {/* Arrow down */}
+            <div className="text-white/20 text-xl font-thin my-2">↓</div>
+
+            {/* Challenge Posted */}
+            <div className="rounded-2xl bg-white/5 ring-1 ring-white/8 px-4 py-3 text-center min-w-[130px]">
+              <div className="text-xs font-bold text-[#FFD28F]">Challenge Posted</div>
+              <div className="text-[10px] text-white/35 mt-0.5">funds earmarked</div>
+            </div>
+
+            <div className="text-white/20 text-xl font-thin my-2">↓</div>
+
+            {/* Athlete Moves */}
+            <div className="rounded-2xl bg-white/5 ring-1 ring-white/8 px-4 py-3 text-center min-w-[130px]">
+              <div className="text-xs font-bold text-[#FF9B6A]">Athlete Moves</div>
+              <div className="text-[10px] text-white/35 mt-0.5">run, walk, or cycle</div>
+            </div>
+
+            <div className="text-white/20 text-xl font-thin my-2">↓</div>
+
+            {/* Verified */}
+            <div className="rounded-2xl bg-white/5 ring-1 ring-white/8 px-4 py-3 text-center min-w-[130px]">
+              <div className="text-xs font-bold text-white/70">Verified</div>
+              <div className="text-[10px] text-white/35 mt-0.5">activity confirmed</div>
+            </div>
+
+            <div className="text-white/20 text-xl font-thin my-2">↓</div>
+
+            {/* Nonprofit Receives */}
+            <div className="rounded-2xl bg-white/5 ring-1 ring-white/8 px-4 py-3 text-center min-w-[130px]">
+              <div className="text-xs font-bold text-white">Nonprofit Receives</div>
+              <div className="text-[10px] text-white/35 mt-0.5">real funding released</div>
+            </div>
+
           </div>
         </div>
       </section>
