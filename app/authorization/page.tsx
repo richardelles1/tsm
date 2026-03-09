@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type AuthMode = "login" | "signup";
 type AuthStatus = "idle" | "loading" | "check_email";
 
-export default function AuthorizationPage() {
+function AuthorizationContent() {
   const router = useRouter();
 
   const searchParams = useSearchParams();
@@ -299,5 +299,19 @@ export default function AuthorizationPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function AuthorizationPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen flex items-center justify-center bg-[#070A12] text-white">
+          <div className="h-1 w-24 rounded-full bg-white/10 animate-pulse" />
+        </main>
+      }
+    >
+      <AuthorizationContent />
+    </Suspense>
   );
 }
