@@ -1,7 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const FROM = "The Shared Mile <hello@thesharedmile.com>";
 
 // Solid-color equivalents of the glass rgba values — renders correctly in all email clients
@@ -207,8 +206,7 @@ serve(async (req: Request) => {
     return new Response(JSON.stringify({ error: "No email address" }), { status: 400 });
   }
 
-  const confirmBase = `${SUPABASE_URL}/auth/v1/verify`;
-  const confirmUrl = `${confirmBase}?token=${tokenHash}&type=${actionType}&redirect_to=${encodeURIComponent(redirectTo)}`;
+  const confirmUrl = `${redirectTo}&token_hash=${encodeURIComponent(tokenHash)}&type=${encodeURIComponent(actionType)}`;
 
   let emailPayload: { subject: string; html: string };
 
