@@ -123,13 +123,13 @@ export default function HomePage() {
           {/* Flywheel diagram — two sources at top, then linear flow */}
           <div className="flex flex-col items-center gap-0">
 
-            {/* Row 1: two funding sources */}
-            <div className="flex flex-row items-center justify-center gap-2">
-              <div className="rounded-2xl bg-white/5 ring-1 ring-white/8 px-4 py-3 text-center min-w-[110px]">
+            {/* Row 1: two funding sources — equal width, equidistant from center */}
+            <div className="flex flex-row items-stretch justify-center gap-2">
+              <div className="rounded-2xl bg-white/5 ring-1 ring-white/8 px-4 py-3 text-center w-[130px]">
                 <div className="text-xs font-bold text-[#C4EBF2]">Donors</div>
                 <div className="text-[10px] text-white/35 mt-0.5">give to pools</div>
               </div>
-              <div className="rounded-2xl bg-white/5 ring-1 ring-white/8 px-4 py-3 text-center min-w-[130px]">
+              <div className="rounded-2xl bg-white/5 ring-1 ring-white/8 px-4 py-3 text-center w-[130px]">
                 <div className="text-xs font-bold text-[#FFD28F]">Impact Partners</div>
                 <div className="text-[10px] text-white/35 mt-0.5">commit and match</div>
               </div>
@@ -165,7 +165,7 @@ export default function HomePage() {
             {/* Nonprofit Receives */}
             <div className="rounded-2xl bg-white/5 ring-1 ring-white/8 px-4 py-3 text-center min-w-[130px]">
               <div className="text-xs font-bold text-white">Nonprofit Receives</div>
-              <div className="text-[10px] text-white/35 mt-0.5">real funding released</div>
+              <div className="text-[10px] text-white/35 mt-0.5">match boost applied</div>
             </div>
 
           </div>
