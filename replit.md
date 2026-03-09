@@ -36,6 +36,8 @@ Admin reviews payables → marks batch as paid → Foundation pays nonprofit
 ## NPO Portal
 - All `[slug]` sub-pages are protected by `app/npo/[slug]/layout.tsx` — requires authenticated session + nonprofit_memberships row matching the org
 - Auth reads use `lib/supabase/serverWithAuth.ts` (cookie-based, @supabase/ssr) for identity; data reads use `lib/supabase/server.ts` (service-role)
+- Browser client (`lib/supabase/client.ts`) uses `createBrowserClient` from `@supabase/ssr` — writes session to cookies so server components can read it
+- `middleware.ts` at project root refreshes session cookies on every request (standard @supabase/ssr pattern)
 - Settings server action verifies ownership before writing (user must have membership row)
 - Dashboard hub: `components/NpoHub.tsx` — toggleable sections (Payouts, Challenges, Unlock Ledger, Impact) modeled on AdminHub
 - Ledger shows challenge titles (not UUIDs)
