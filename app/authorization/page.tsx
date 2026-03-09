@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type AuthMode = "login" | "signup";
@@ -9,6 +9,9 @@ type AuthStatus = "idle" | "loading" | "check_email";
 
 export default function AuthorizationPage() {
   const router = useRouter();
+
+  const searchParams = useSearchParams();
+  const linkExpired = searchParams.get("error") === "link_expired";
 
   const [supabase, setSupabase] = useState<ReturnType<typeof createSupabaseBrowserClient> | null>(null);
   const [mode, setMode] = useState<AuthMode>("login");
@@ -80,7 +83,7 @@ export default function AuthorizationPage() {
     try {
       if (mode === "signup") {
         const { error } = await withTimeout(
-          supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}/onboarding` } }),
+          supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding` } }),
           15000, "Signup"
         );
         if (error) { setError(error.message); setStatus("idle"); return; }
@@ -99,7 +102,11 @@ export default function AuthorizationPage() {
 
   async function handleResend() {
     if (!supabase || !email) return;
-    await supabase.auth.resend({ email, type: "signup" });
+    await supabase.auth.resend({
+      email,
+      type: "signup",
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding` },
+    });
     setResent(true);
   }
 
@@ -215,6 +222,12 @@ export default function AuthorizationPage() {
                 <span className="text-xs text-white/25">or</span>
                 <div className="flex-1 h-px bg-white/10" />
               </div>
+
+              {linkExpired && (
+                <div className="rounded-xl bg-[#FFD28F]/10 ring-1 ring-[#FFD28F]/25 px-4 py-3 text-sm text-[#FFD28F]">
+                  That confirmation link has expired or already been used. Sign up again to get a new one.
+                </div>
+              )}
 
               {error && (
                 <div className="rounded-xl bg-red-500/10 ring-1 ring-red-500/25 px-4 py-3 text-sm text-red-200">
