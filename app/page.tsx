@@ -168,6 +168,53 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* PARTNER + NONPROFIT CTAs */}
+      <section className="px-6 py-20">
+        <div className="mx-auto max-w-5xl">
+          <div className="mb-10 text-center">
+            <p className="text-xs font-bold tracking-[0.2em] uppercase text-white/35 mb-3">Work with us</p>
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight">
+              Two ways to be part of it
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* Impact Partner card */}
+            <div className="flex flex-col gap-5 rounded-3xl bg-white/5 ring-1 ring-white/10 backdrop-blur-xl p-8">
+              <div>
+                <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#C4EBF2]/70">For Companies</span>
+                <h3 className="mt-2 text-2xl font-black tracking-tight text-white">Become an Impact Partner</h3>
+              </div>
+              <p className="text-white/55 text-sm leading-relaxed flex-1">
+                Your committed funds sit in a dedicated pool and get released only when athletes complete verified challenges. Movement unlocks your matching dollars.
+              </p>
+              <Link
+                href="/contact?type=partner"
+                className="inline-flex items-center justify-center self-start rounded-full bg-[#C4EBF2] px-6 py-3 text-sm font-bold text-[#0B0F1C] hover:bg-white hover:-translate-y-0.5 transition-all"
+              >
+                Apply Now →
+              </Link>
+            </div>
+
+            {/* Nonprofit card */}
+            <div className="flex flex-col gap-5 rounded-3xl bg-white/5 ring-1 ring-white/10 backdrop-blur-xl p-8">
+              <div>
+                <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#FF9B6A]/70">For Nonprofits</span>
+                <h3 className="mt-2 text-2xl font-black tracking-tight text-white">Get your cause on the map</h3>
+              </div>
+              <p className="text-white/55 text-sm leading-relaxed flex-1">
+                Athletes complete challenges on your behalf. When they finish, real funding flows to you -- no gala, no grant application, just verified movement.
+              </p>
+              <Link
+                href="/contact?type=nonprofit"
+                className="inline-flex items-center justify-center self-start rounded-full bg-[#FF9B6A] px-6 py-3 text-sm font-bold text-[#0B0F1C] hover:bg-[#FFB48E] hover:-translate-y-0.5 transition-all"
+              >
+                Apply Now →
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* FOOTER */}
       <footer className="border-t border-white/8 px-6 py-10">
         <div className="mx-auto max-w-5xl flex flex-col sm:flex-row items-center justify-between gap-4">
