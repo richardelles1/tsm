@@ -58,54 +58,6 @@ export default function HomePage() {
       {/* WHO IT'S FOR — audience toggle */}
       <HomeHero />
 
-      {/* HOW IT WORKS */}
-      <section id="how-it-works" className="relative px-6 py-24 border-t border-white/8">
-        <div className="mx-auto max-w-5xl">
-          <div className="text-center mb-14">
-            <div className="text-[10px] font-bold tracking-[0.22em] text-white/35 uppercase mb-3">How It Works</div>
-            <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight">
-              Three steps. Real impact.
-            </h2>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-3">
-            {[
-              {
-                num: "01",
-                color: "text-[#FF9B6A]",
-                glow: "rgba(255,155,106,0.12)",
-                title: "Claim a Challenge",
-                body: "Browse the marketplace and lock in a challenge. A distance commitment tied to a real funding amount for a specific nonprofit.",
-              },
-              {
-                num: "02",
-                color: "text-[#C4EBF2]",
-                glow: "rgba(196,235,242,0.10)",
-                title: "Move and Verify",
-                body: "Complete the distance. Upload a verification photo or connect your activity tracker. Your body is the key.",
-              },
-              {
-                num: "03",
-                color: "text-[#FFD28F]",
-                glow: "rgba(255,210,143,0.12)",
-                title: "Funding Gets Released",
-                body: "Once approved, the committed funds move to the nonprofit. If an Impact Partner is backing the challenge, they match the amount and double what gets released.",
-              },
-            ].map((step) => (
-              <div
-                key={step.num}
-                className="rounded-3xl bg-white/5 ring-1 ring-white/10 p-6 sm:p-7"
-                style={{ boxShadow: `0 8px 40px 0 ${step.glow}` }}
-              >
-                <div className={`text-4xl font-black ${step.color} mb-4 leading-none`}>{step.num}</div>
-                <h3 className="text-lg font-semibold mb-2">{step.title}</h3>
-                <p className="text-sm text-white/55 leading-relaxed">{step.body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* THE FLYWHEEL */}
       <section className="relative px-6 py-20 border-t border-white/8">
         <div className="mx-auto max-w-4xl text-center">

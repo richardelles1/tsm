@@ -54,6 +54,109 @@ function Prop({ text, muted, soon }: { text: string; muted?: boolean; soon?: boo
   );
 }
 
+type Step = {
+  num: string;
+  color: string;
+  glow: string;
+  title: string;
+  body: string;
+};
+
+function StepsGrid({ steps }: { steps: Step[] }) {
+  return (
+    <div className="w-full mt-10 pt-8 border-t border-white/8">
+      <div className="text-[10px] font-bold tracking-[0.22em] text-white/30 uppercase mb-5 text-center">
+        Your 3-Step Process
+      </div>
+      <div className="grid gap-3 sm:grid-cols-3 text-left">
+        {steps.map((step) => (
+          <div
+            key={step.num}
+            className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-5"
+            style={{ boxShadow: `0 8px 40px 0 ${step.glow}` }}
+          >
+            <div className={`text-3xl font-black ${step.color} mb-3 leading-none`}>{step.num}</div>
+            <h3 className="text-sm font-semibold mb-1.5">{step.title}</h3>
+            <p className="text-xs text-white/50 leading-relaxed">{step.body}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const ATHLETE_STEPS: Step[] = [
+  {
+    num: "01",
+    color: "text-[#FF9B6A]",
+    glow: "rgba(255,155,106,0.10)",
+    title: "Claim a Challenge",
+    body: "Browse the marketplace and lock in a challenge tied to a cause and a real dollar amount already sitting in a pool, waiting for you.",
+  },
+  {
+    num: "02",
+    color: "text-[#C4EBF2]",
+    glow: "rgba(196,235,242,0.08)",
+    title: "Move and Verify",
+    body: "Complete the distance. Upload a photo or connect your tracker. Your effort is the proof.",
+  },
+  {
+    num: "03",
+    color: "text-[#FFD28F]",
+    glow: "rgba(255,210,143,0.10)",
+    title: "Funding Gets Released",
+    body: "Once approved, committed funds move to the nonprofit. If an Impact Partner is backing your challenge, the amount doubles.",
+  },
+];
+
+const PARTNER_STEPS: Step[] = [
+  {
+    num: "01",
+    color: "text-[#C4EBF2]",
+    glow: "rgba(196,235,242,0.08)",
+    title: "Commit to a Pool",
+    body: "Choose your cause and deposit matching funds. They sit in a dedicated, auditable pool waiting for athletes to activate them. No movement, no release.",
+  },
+  {
+    num: "02",
+    color: "text-[#FF9B6A]",
+    glow: "rgba(255,155,106,0.10)",
+    title: "Athletes Do the Work",
+    body: "When a challenge is claimed and completed, your committed dollars are unlocked. You set the parameters; athletes deliver the activity.",
+  },
+  {
+    num: "03",
+    color: "text-[#FFD28F]",
+    glow: "rgba(255,210,143,0.10)",
+    title: "Your Match Gets Applied",
+    body: "At payout, your contribution is matched against what athletes unlocked. The nonprofit receives more, and you get a full impact report.",
+  },
+];
+
+const NONPROFIT_STEPS: Step[] = [
+  {
+    num: "01",
+    color: "text-[#C4EBF2]",
+    glow: "rgba(196,235,242,0.08)",
+    title: "Apply and Get Listed",
+    body: "Submit your organization to join the platform. We review your application and build out your cause profile.",
+  },
+  {
+    num: "02",
+    color: "text-[#FF9B6A]",
+    glow: "rgba(255,155,106,0.10)",
+    title: "Challenges Go Live",
+    body: "Athletes claim challenges in your name. Every completion unlocks real committed dollars that are already earmarked for your cause.",
+  },
+  {
+    num: "03",
+    color: "text-[#FFD28F]",
+    glow: "rgba(255,210,143,0.10)",
+    title: "Receive the Funds",
+    body: "Once activity is verified, money moves directly to you. No gala, no campaign, no asks. Just funds released by movement.",
+  },
+];
+
 function AthletesPanel() {
   return (
     <div className="flex flex-col items-center">
@@ -77,13 +180,8 @@ function AthletesPanel() {
         >
           Browse Challenges →
         </Link>
-        <a
-          href="#how-it-works"
-          className="w-full sm:w-auto inline-flex items-center justify-center rounded-full bg-transparent px-8 py-4 text-base ring-1 ring-white/20 text-white/70 hover:ring-white/35 hover:text-white transition"
-        >
-          See How It Works
-        </a>
       </div>
+      <StepsGrid steps={ATHLETE_STEPS} />
     </div>
   );
 }
@@ -117,6 +215,7 @@ function NonprofitsPanel() {
           Apply to Be a Beneficiary →
         </Link>
       </div>
+      <StepsGrid steps={NONPROFIT_STEPS} />
     </div>
   );
 }
@@ -150,6 +249,7 @@ function PartnersPanel() {
           Become an Impact Partner →
         </Link>
       </div>
+      <StepsGrid steps={PARTNER_STEPS} />
     </div>
   );
 }
