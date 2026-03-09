@@ -126,7 +126,6 @@ Also: `rejected`, `expired`, `cancelled`
 - Release engine (RPC), pool debit logic
 - Releases ledger, idempotent release protection
 - Claim lifecycle updates, challenge creation (admin UI)
-- Onboarding flow, PMP entry (admin)
 - Payable auto-creation (DB trigger on release insert)
 - Admin home KPI dashboard
 - Admin payables: batch "Mark as Paid" with provider + reference (server action)
@@ -136,18 +135,20 @@ Also: `rejected`, `expired`, `cancelled`
 - Athlete impact dashboard: lifetime stats hero, history rows with nonprofit name + date, active claim links to `/activechallenge`
 - **Global nav** (`components/AppNav.tsx`): role-aware links, active challenge indicator dot, mobile hamburger, admin-simplified variant — mounted in `app/layout.tsx`
 - **Homepage** (`app/page.tsx`): 4-section landing (hero + How It Works + Capital Chain + footer), Coral Ember CTAs, runner background
-- **Auth page** (`/authorization`): brand kit glass card, TSM logo, Coral Ember button, `check_email` state with envelope SVG + resend button
-- **Onboarding** (`/onboarding`): brand kit glass card, labeled inputs, TSM logo, Coral Ember CTA
+- **Auth page** (`/authorization`): brand kit glass card, TSM logo, Coral Ember button, `check_email` state. Signup shows aqua tagline + "Join The Shared Mile" CTA. Login has working "Forgot password?" flow. Updated check_email copy.
+- **Onboarding** (`/onboarding`): 3-screen state machine. Screen 1: brand promise (how it works, numbered steps). Screen 2: Display Name + Username only (location/age deferred). Screen 3: welcome + 3s auto-redirect to /challenges.
 - **Active challenge page** (`/activechallenge`): joins `challenges(title, description)`, shows challenge title prominently, Gold stats, two-step confirm-release, Coral Ember verify CTA, helpful empty state when no active claim
 - **Claim page** (`/claim/[id]`): double-claim guard — blocks with clear UI if athlete already has an active claim, brand kit styling, activity accent strip
 - **Donation page** (`/give`): `DonationForm.tsx` client component with tip selector (5/10/15/20/None), processing fee toggle, real-time breakdown, brand kit
 - **Admin Command Center** (`/admin`): redesigned as scrollable single-page hub (AdminHub.tsx). Four collapsible sections: Verifications (approve/reject inline, green flash animation), Unpaid Payables (rows + Batch Mark Paid CTA), Challenges (recent 5 + New button), Pool Health (progress bars). Alert pills appear above hub when active. `force-dynamic` ensures fresh verifications on every load. Active challenges count fixed to query `status = "open"` directly.
-- **Admin New Challenge**: Activity field is now a `<select>` dropdown (run/walk/cycle) — no free-text possible
+- **Admin New Challenge** (`/admin/challenges/newchallenge`): Refactored to server wrapper + `NewChallengeForm.tsx` client component. Activity is pill toggle (no system picker). Amount is hero number field. Lane auto-derived from pool, Status hardcoded "open". Loading state on submit. Error display. Redirect fixed to `/admin/challenges`.
 - **PMP Entry** (`/admin/pmpentry`): fixed localhost:5000 bug — now writes directly to Supabase (top-up or create modes)
 - **Challenge card MATCHED badge**: moved into the activity+slots flex row (inline, not absolute positioned) — no overlap with slot count text on any screen size
 - **Admin brand kit** — all admin pages on dark theme: donorfunds, partnerfunds, pmpentry, alerts, fundingpools, nonprofits, challenges, releases, settings — KPI cards, glass tables, Gold/Aqua money values
 - **PWA manifest** (`/public/manifest.json`): name, icons, theme color, standalone display
-- **Email templates** (`docs/supabase-email-templates.md`): confirm signup + magic link, copy-pasteable HTML, TSM-branded
+- **Email infrastructure**: Resend SDK (`lib/email/send.ts`). Three dark on-brand HTML templates: `claimConfirmed`, `proofApproved` (with match display), `proofRejected` (with resubmission tips). Triggers wired into `api/claims/submit` and `api/admin/verifications/update` — fire-and-forget, non-blocking.
+- **Supabase SMTP**: Configured with Resend (smtp.resend.com:465, username=resend). Sender: "The Shared Mile" / hello@thesharedmile.com. Custom confirm-signup email template deployed.
+- **First-visit overlays** (`components/FirstVisitOverlay.tsx`): localStorage-gated, shown once per page per device. Challenge board overlay: "The Miles Marketplace" — explains Claim/Move/Unlock loop. Athlete hub overlay: "Your impact hub" — explains the three dashboard sections. Dismiss on CTA or backdrop tap.
 
 **Pending / Next:**
 1. Stripe donation portal wiring (`/give` is currently a simulator)
