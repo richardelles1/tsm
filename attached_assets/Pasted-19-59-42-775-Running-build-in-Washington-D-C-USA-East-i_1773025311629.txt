@@ -1,0 +1,40 @@
+19:59:42.775 Running build in Washington, D.C., USA (East) – iad1
+19:59:42.775 Build machine configuration: 2 cores, 8 GB
+19:59:42.928 Cloning github.com/richardelles1/tsm (Branch: main, Commit: c37c8c8)
+19:59:44.696 Cloning completed: 1.768s
+19:59:45.401 Restored build cache from previous deployment (HXYo4EBW9ctbJTKzsbzUBhbV8ST6)
+19:59:46.733 Running "vercel build"
+19:59:47.350 Vercel CLI 50.28.0
+19:59:47.664 Installing dependencies...
+19:59:49.161 
+19:59:49.162 up to date in 1s
+19:59:49.163 
+19:59:49.163 225 packages are looking for funding
+19:59:49.164   run `npm fund` for details
+19:59:49.194 Detected Next.js version: 15.5.12
+19:59:49.199 Running "npm run build"
+19:59:49.297 
+19:59:49.297 > omm@0.1.0 build
+19:59:49.297 > next build
+19:59:49.298 
+19:59:50.056    ▲ Next.js 15.5.12
+19:59:50.057 
+19:59:50.098    Creating an optimized production build ...
+19:59:55.410 Browserslist: browsers data (caniuse-lite) is 10 months old. Please run:
+19:59:55.411   npx update-browserslist-db@latest
+19:59:55.412   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+19:59:56.687  ✓ Compiled successfully in 6.1s
+19:59:56.690    Skipping linting
+19:59:56.690    Checking validity of types ...
+20:00:05.256 Failed to compile.
+20:00:05.256 
+20:00:05.257 ./supabase/functions/send-auth-email/index.ts:1:23
+20:00:05.257 Type error: Cannot find module 'https://deno.land/std@0.168.0/http/server.ts' or its corresponding type declarations.
+20:00:05.257 
+20:00:05.257 [0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m { serve } [36mfrom[39m [32m"https://deno.land/std@0.168.0/http/server.ts"[39m[33m;[39m
+20:00:05.257  [90m   |[39m                       [31m[1m^[22m[39m
+20:00:05.257  [90m 2 |[39m
+20:00:05.257  [90m 3 |[39m [36mconst[39m [33mRESEND_API_KEY[39m [33m=[39m [33mDeno[39m[33m.[39menv[33m.[39m[36mget[39m([32m"RESEND_API_KEY"[39m) [33m?[39m[33m?[39m [32m""[39m[33m;[39m
+20:00:05.257  [90m 4 |[39m [36mconst[39m [33mSUPABASE_URL[39m [33m=[39m [33mDeno[39m[33m.[39menv[33m.[39m[36mget[39m([32m"SUPABASE_URL"[39m) [33m?[39m[33m?[39m [32m""[39m[33m;[39m[0m
+20:00:05.290 Next.js build worker exited with code: 1 and signal: null
+20:00:05.332 Error: Command "npm run build" exited with 1
