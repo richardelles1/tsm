@@ -66,6 +66,7 @@ export default function AthletePage() {
   const [approvedHistory, setApprovedHistory] = useState<ApprovedHistoryRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
@@ -141,19 +142,28 @@ export default function AthletePage() {
 
   async function handlePhotoUpload(file: File) {
     if (!supabase || !athlete) return;
+    setUploadError(null);
+
+    const MAX_BYTES = 25 * 1024 * 1024;
+    if (file.size > MAX_BYTES) {
+      setUploadError("Image too large. Please use a photo under 25MB.");
+      return;
+    }
+
     try {
       setUploading(true);
-      const fileExt = file.name.split(".").pop();
+      const fileExt = file.name.split(".").pop() ?? "jpg";
       const filePath = `${athlete.id}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage.from("athlete-photos").upload(filePath, file, { upsert: true });
-      if (uploadError) throw uploadError;
+      const { error: storageError } = await supabase.storage.from("athlete-photos").upload(filePath, file, { upsert: true });
+      if (storageError) throw storageError;
       const { data } = supabase.storage.from("athlete-photos").getPublicUrl(filePath);
       const { error: updateError } = await supabase.from("athletes").update({ photo_url: data.publicUrl }).eq("id", athlete.id).select().single();
       if (updateError) throw updateError;
       setAthlete((prev) => prev ? { ...prev, photo_url: data.publicUrl } : prev);
       await loadAthlete();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Photo upload failed", err);
+      setUploadError(err?.message ?? "Upload failed. Please try again.");
     } finally {
       setUploading(false);
     }
@@ -195,8 +205,8 @@ export default function AthletePage() {
       <div className="relative mx-auto max-w-xl px-4 py-10 space-y-8">
         {/* Profile */}
         <div className="flex flex-col items-center text-center gap-3 pt-2">
-          <div className="relative group cursor-pointer">
-            <label className="cursor-pointer">
+          <div className="flex flex-col items-center gap-0">
+            <label className="cursor-pointer flex flex-col items-center gap-1.5">
               <div className="h-24 w-24 rounded-full bg-gradient-to-b from-[#FFD28F] to-[#BFA46A] p-[1.5px]">
                 <div className="h-full w-full rounded-full bg-[#0B0F1C] overflow-hidden flex items-center justify-center text-2xl font-semibold">
                   {athlete.photo_url ? (
@@ -206,11 +216,14 @@ export default function AthletePage() {
                   )}
                 </div>
               </div>
+              <span className="text-[10px] text-[#FFD28F]/70 tracking-wide">
+                {uploading ? "Uploading…" : "Change photo"}
+              </span>
               <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(f); }} />
             </label>
-            <div className="mt-1.5 text-[10px] text-[#FFD28F]/70 tracking-wide">
-              {uploading ? "Uploading…" : "Change photo"}
-            </div>
+            {uploadError && (
+              <p className="mt-2 text-xs text-[#FF9B6A] text-center max-w-[200px] leading-snug">{uploadError}</p>
+            )}
           </div>
 
           <div>
