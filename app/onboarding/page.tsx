@@ -42,12 +42,21 @@ export default function OnboardingPage() {
     if (!supabase) return;
     const { data } = await supabase.auth.getSession();
     if (!data.session?.user) { router.replace("/authorization"); return; }
+
+    const user = data.session.user;
+
     const { data: athlete } = await supabase
       .from("athletes")
       .select("onboarding_completed")
-      .eq("id", data.session.user.id)
+      .eq("id", user.id)
       .maybeSingle();
-    if (athlete?.onboarding_completed) router.replace("/athlete");
+    if (athlete?.onboarding_completed) { router.replace("/athlete"); return; }
+
+    const googleName =
+      user.user_metadata?.full_name ||
+      user.user_metadata?.name ||
+      "";
+    if (googleName) setDisplayName(googleName);
   }
 
   function transition(next: Step) {
